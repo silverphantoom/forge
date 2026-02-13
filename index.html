@@ -1,0 +1,900 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#a53a2a">
+<link rel="manifest" href="manifest.json">
+<title>Forge</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#1a1a2e;--card:#16213e;--text:#e8e8e8;--muted:#8899aa;--accent:#a53a2a;--warm:#d4a373;--green:#2ecc71;--red:#e74c3c;--yellow:#f39c12;--border:#2a3a5e;--radius:12px}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px;-webkit-tap-highlight-color:transparent}
+.container{max-width:600px;margin:0 auto;padding:12px}
+h1{font-size:22px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
+h2{font-size:16px;color:var(--warm);margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
+.card{background:var(--card);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--border)}
+.stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.stat{background:var(--card);border-radius:var(--radius);padding:14px 10px;text-align:center;border:1px solid var(--border)}
+.stat .num{font-size:28px;font-weight:700;color:var(--accent)}
+.stat .lbl{font-size:11px;color:var(--muted);margin-top:4px;text-transform:uppercase}
+.btn{background:var(--accent);color:#fff;border:none;border-radius:8px;padding:12px 20px;font-size:14px;font-weight:600;cursor:pointer;min-height:44px;min-width:44px;transition:opacity .2s}
+.btn:active{opacity:.7}
+.btn-sm{padding:8px 14px;font-size:12px}
+.btn-outline{background:transparent;border:1px solid var(--accent);color:var(--accent)}
+.btn-warm{background:var(--warm);color:#1a1a2e}
+.btn-green{background:var(--green)}
+.btn-red{background:var(--red)}
+.btn-row{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+input,select,textarea{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:12px;font-size:14px;width:100%;min-height:44px;font-family:inherit}
+input:focus,select:focus,textarea:focus{outline:none;border-color:var(--accent)}
+textarea{resize:vertical;min-height:80px}
+label{display:block;font-size:12px;color:var(--muted);margin:8px 0 4px;text-transform:uppercase}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.list-item{background:var(--card);border-radius:var(--radius);padding:14px;margin-bottom:8px;border:1px solid var(--border);position:relative}
+.list-item .title{font-weight:600;margin-bottom:4px}
+.list-item .meta{font-size:12px;color:var(--muted)}
+.list-item .actions{position:absolute;top:10px;right:10px;display:flex;gap:6px}
+.list-item .actions button{background:none;border:none;color:var(--muted);cursor:pointer;font-size:16px;min-width:30px;min-height:30px;display:flex;align-items:center;justify-content:center}
+.badge{display:inline-block;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:600;text-transform:uppercase}
+.badge-new{background:#2980b9;color:#fff}
+.badge-contacted{background:#8e44ad;color:#fff}
+.badge-quoted{background:var(--yellow);color:#1a1a2e}
+.badge-scheduled{background:var(--warm);color:#1a1a2e}
+.badge-completed{background:var(--green);color:#fff}
+.badge-lost{background:var(--red);color:#fff}
+.badge-todo{background:var(--muted);color:#fff}
+.badge-in-progress{background:var(--yellow);color:#1a1a2e}
+.badge-done{background:var(--green);color:#fff}
+.badge-low{background:#3498db;color:#fff}
+.badge-medium{background:var(--yellow);color:#1a1a2e}
+.badge-high{background:#e67e22;color:#fff}
+.badge-urgent{background:var(--red);color:#fff}
+.progress-bar{background:var(--bg);border-radius:6px;height:8px;overflow:hidden;margin-top:4px}
+.progress-bar .fill{height:100%;border-radius:6px;transition:width .3s}
+.search{margin-bottom:12px}
+.filter-row{display:flex;gap:8px;margin-bottom:12px;align-items:center}
+.filter-row select{width:auto;min-width:100px}
+.tab-content{display:none}
+.tab-content.active{display:block}
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.7);z-index:100;display:none;align-items:center;justify-content:center;padding:16px}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border-radius:var(--radius);padding:20px;width:100%;max-width:500px;max-height:85vh;overflow-y:auto;border:1px solid var(--border)}
+.modal h2{margin-top:0}
+nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);display:flex;z-index:50;padding-bottom:env(safe-area-inset-bottom)}
+nav button{flex:1;background:none;border:none;color:var(--muted);padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;min-height:54px;font-family:inherit;transition:color .2s}
+nav button.active{color:var(--accent)}
+nav button .icon{font-size:22px}
+.empty{text-align:center;padding:40px 20px;color:var(--muted)}
+.tel{color:var(--warm);text-decoration:none}
+.money-green{color:var(--green)}
+.money-red{color:var(--red)}
+.timer-wrap{display:flex;flex-direction:column;align-items:center;padding:20px}
+.timer-ring{position:relative;width:220px;height:220px}
+.timer-ring svg{transform:rotate(-90deg)}
+.timer-ring .time{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:48px;font-weight:700}
+.timer-ring .mode-label{position:absolute;top:65%;left:50%;transform:translate(-50%,0);font-size:14px;color:var(--muted)}
+.timer-controls{display:flex;gap:12px;margin-top:20px}
+.sessions-count{margin-top:16px;text-align:center;color:var(--muted)}
+</style>
+</head>
+<body>
+
+<div id="tab-dashboard" class="tab-content active">
+<div class="container">
+<h1>⚒️ Forge</h1>
+<div class="stat-grid">
+<div class="stat"><div class="num" id="d-tasks">0</div><div class="lbl">Active Tasks</div></div>
+<div class="stat"><div class="num" id="d-done">0</div><div class="lbl">Done Today</div></div>
+<div class="stat"><div class="num" id="d-streak">0</div><div class="lbl">Day Streak</div></div>
+</div>
+<div class="stat-grid" style="grid-template-columns:1fr 1fr">
+<div class="stat"><div class="num money-green" id="d-income">$0</div><div class="lbl">Income (Month)</div></div>
+<div class="stat"><div class="num money-red" id="d-expense">$0</div><div class="lbl">Expenses (Month)</div></div>
+</div>
+<h2>Quick Actions</h2>
+<div class="btn-row">
+<button class="btn" onclick="openTab('tasks');openTaskModal()">+ Task</button>
+<button class="btn btn-warm" onclick="openTab('leads');openLeadModal()">+ Lead</button>
+<button class="btn btn-outline" onclick="openTab('finance');openFinanceModal()">+ Expense</button>
+</div>
+<h2>Recent Activity</h2>
+<div id="d-recent" class="empty">No activity yet</div>
+</div>
+</div>
+
+<div id="tab-tasks" class="tab-content">
+<div class="container">
+<h1>✅ Tasks</h1>
+<input type="text" class="search" placeholder="Search tasks..." id="task-search" oninput="renderTasks()">
+<div class="filter-row">
+<select id="task-filter-status" onchange="renderTasks()">
+<option value="all">All Status</option>
+<option value="todo">To Do</option>
+<option value="in-progress">In Progress</option>
+<option value="done">Done</option>
+</select>
+<select id="task-filter-priority" onchange="renderTasks()">
+<option value="all">All Priority</option>
+<option value="urgent">Urgent</option>
+<option value="high">High</option>
+<option value="medium">Medium</option>
+<option value="low">Low</option>
+</select>
+<button class="btn btn-sm" onclick="openTaskModal()">+ Add</button>
+</div>
+<div id="task-list"></div>
+</div>
+</div>
+
+<div id="tab-leads" class="tab-content">
+<div class="container">
+<h1>🎯 Leads</h1>
+<div class="filter-row">
+<select id="lead-filter" onchange="renderLeads()">
+<option value="all">All Status</option>
+<option value="new">New</option>
+<option value="contacted">Contacted</option>
+<option value="quoted">Quoted</option>
+<option value="scheduled">Scheduled</option>
+<option value="completed">Completed</option>
+<option value="lost">Lost</option>
+</select>
+<button class="btn btn-sm" onclick="openLeadModal()">+ Add</button>
+</div>
+<div id="lead-list"></div>
+</div>
+</div>
+
+<div id="tab-finance" class="tab-content">
+<div class="container">
+<h1>💰 Finance</h1>
+
+<!-- Period selector -->
+<div class="btn-row" style="margin-bottom:12px">
+<button class="btn btn-sm btn-outline" id="fp-month" onclick="setFinPeriod('month')">This Month</button>
+<button class="btn btn-sm btn-outline" id="fp-all" onclick="setFinPeriod('all')">All Time</button>
+<button class="btn btn-sm btn-outline" id="fp-copilot" onclick="setFinPeriod('copilot')">Copilot Data</button>
+</div>
+
+<!-- Summary stats -->
+<div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
+<div class="stat"><div class="num money-green" id="f-income">$0</div><div class="lbl">Income</div></div>
+<div class="stat"><div class="num money-red" id="f-expense">$0</div><div class="lbl">Expenses</div></div>
+<div class="stat"><div class="num" id="f-net">$0</div><div class="lbl">Net</div></div>
+</div>
+
+<!-- Copilot insights panel (hidden by default) -->
+<div id="copilot-panel" style="display:none">
+<div class="card" style="border-color:var(--accent)">
+<h2 style="margin-top:0">📊 Financial Profile</h2>
+<div style="font-size:13px;color:var(--muted);margin-bottom:8px">938 transactions · Oct 2023 → Aug 2025</div>
+
+<div class="stat-grid" style="grid-template-columns:1fr 1fr">
+<div class="stat"><div class="num" style="font-size:20px;color:var(--green)">$26,546</div><div class="lbl">Total Income</div></div>
+<div class="stat"><div class="num" style="font-size:20px;color:var(--red)">$5,109</div><div class="lbl">Biz Invested</div></div>
+</div>
+
+<h2>Income Sources</h2>
+<div id="cp-income-sources"></div>
+
+<h2>Top Spending</h2>
+<div id="cp-top-merchants"></div>
+
+<h2>🍔 Restaurant Rankings</h2>
+<div id="cp-restaurants"></div>
+
+<h2>Monthly Recurring (~$406/mo)</h2>
+<div id="cp-recurring"></div>
+
+<h2>🏗️ Entrepreneurial Arc</h2>
+<div id="cp-timeline"></div>
+
+<h2>Accounts</h2>
+<div id="cp-accounts"></div>
+</div>
+</div>
+
+<!-- Manual transaction panel -->
+<div id="manual-panel">
+<div class="btn-row">
+<button class="btn btn-green btn-sm" onclick="openFinanceModal('income')">+ Income</button>
+<button class="btn btn-red btn-sm" onclick="openFinanceModal('expense')">+ Expense</button>
+</div>
+<h2>Category Breakdown</h2>
+<div id="f-categories"></div>
+<h2>Recent Transactions</h2>
+<div id="f-recent"></div>
+</div>
+</div>
+</div>
+
+<div id="tab-focus" class="tab-content">
+<div class="container">
+<h1>⏱️ Focus</h1>
+<div class="timer-wrap">
+<div class="timer-ring">
+<svg width="220" height="220"><circle cx="110" cy="110" r="100" fill="none" stroke="var(--border)" stroke-width="8"/><circle id="timer-progress" cx="110" cy="110" r="100" fill="none" stroke="var(--accent)" stroke-width="8" stroke-linecap="round" stroke-dasharray="628.32" stroke-dashoffset="0"/></svg>
+<div class="time" id="timer-display">25:00</div>
+<div class="mode-label" id="timer-mode">WORK</div>
+</div>
+<div class="timer-controls">
+<button class="btn" id="timer-start" onclick="toggleTimer()">Start</button>
+<button class="btn btn-outline" onclick="resetTimer()">Reset</button>
+<button class="btn btn-outline" onclick="skipTimer()">Skip</button>
+</div>
+<div class="sessions-count">Sessions: <span id="timer-sessions">0</span></div>
+</div>
+<div class="btn-row" style="justify-content:center">
+<button class="btn btn-sm btn-outline" onclick="setTimerMode('work')">25 min</button>
+<button class="btn btn-sm btn-outline" onclick="setTimerMode('short')">5 min</button>
+<button class="btn btn-sm btn-outline" onclick="setTimerMode('long')">15 min</button>
+</div>
+</div>
+</div>
+
+<div id="tab-notes" class="tab-content">
+<div class="container">
+<h1>📝 Notes</h1>
+<button class="btn btn-sm" onclick="openNoteModal()" style="margin-bottom:12px">+ New Note</button>
+<div id="note-list"></div>
+</div>
+</div>
+
+<!-- Modals -->
+<div class="modal-overlay" id="modal-task">
+<div class="modal">
+<h2 id="task-modal-title">New Task</h2>
+<input type="hidden" id="task-edit-id">
+<label>Title</label><input type="text" id="task-title" placeholder="What needs to be done?">
+<div class="form-row">
+<div><label>Priority</label><select id="task-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
+<div><label>Category</label><select id="task-category"><option value="red-clay">Red Clay</option><option value="personal">Personal</option><option value="business">Business</option><option value="learning">Learning</option></select></div>
+</div>
+<div class="form-row">
+<div><label>Status</label><select id="task-status"><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select></div>
+<div><label>Due Date</label><input type="date" id="task-due"></div>
+</div>
+<div class="btn-row" style="margin-top:16px">
+<button class="btn" onclick="saveTask()">Save</button>
+<button class="btn btn-outline" onclick="closeModal('modal-task')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-lead">
+<div class="modal">
+<h2 id="lead-modal-title">New Lead</h2>
+<input type="hidden" id="lead-edit-id">
+<label>Name</label><input type="text" id="lead-name" placeholder="Customer name">
+<div class="form-row">
+<div><label>Phone</label><input type="tel" id="lead-phone" placeholder="(334) 555-1234"></div>
+<div><label>Source</label><select id="lead-source"><option value="google">Google</option><option value="yelp">Yelp</option><option value="referral">Referral</option><option value="facebook">Facebook</option><option value="nextdoor">Nextdoor</option><option value="phone">Phone</option></select></div>
+</div>
+<label>Service Needed</label><input type="text" id="lead-service" placeholder="Spring replacement, opener repair...">
+<label>Status</label><select id="lead-status"><option value="new">New</option><option value="contacted">Contacted</option><option value="quoted">Quoted</option><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="lost">Lost</option></select>
+<label>Notes</label><textarea id="lead-notes" placeholder="Any details..."></textarea>
+<div class="btn-row" style="margin-top:16px">
+<button class="btn" onclick="saveLead()">Save</button>
+<button class="btn btn-outline" onclick="closeModal('modal-lead')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-finance">
+<div class="modal">
+<h2>Add Transaction</h2>
+<div class="form-row">
+<div><label>Type</label><select id="fin-type"><option value="expense">Expense</option><option value="income">Income</option></select></div>
+<div><label>Amount</label><input type="number" id="fin-amount" placeholder="0.00" step="0.01" min="0"></div>
+</div>
+<label>Category</label><select id="fin-category">
+<option value="red-clay-income">Red Clay Income</option>
+<option value="freelance">Freelance</option>
+<option value="housing">Housing</option>
+<option value="food">Food</option>
+<option value="transport">Transport</option>
+<option value="subscriptions">Subscriptions</option>
+<option value="entertainment">Entertainment</option>
+<option value="education">Education</option>
+<option value="health">Health</option>
+<option value="business">Business</option>
+<option value="other">Other</option>
+</select>
+<label>Description</label><input type="text" id="fin-desc" placeholder="What's this for?">
+<div class="btn-row" style="margin-top:16px">
+<button class="btn" onclick="saveTransaction()">Save</button>
+<button class="btn btn-outline" onclick="closeModal('modal-finance')">Cancel</button>
+</div>
+</div>
+</div>
+
+<div class="modal-overlay" id="modal-note">
+<div class="modal">
+<h2 id="note-modal-title">New Note</h2>
+<input type="hidden" id="note-edit-id">
+<label>Note</label><textarea id="note-text" rows="8" placeholder="Write something..."></textarea>
+<div class="btn-row" style="margin-top:16px">
+<button class="btn" onclick="saveNote()">Save</button>
+<button class="btn btn-outline" onclick="closeModal('modal-note')">Cancel</button>
+</div>
+</div>
+</div>
+
+<nav>
+<button class="active" onclick="openTab('dashboard')"><span class="icon">🏠</span>Home</button>
+<button onclick="openTab('tasks')"><span class="icon">✅</span>Tasks</button>
+<button onclick="openTab('leads')"><span class="icon">🎯</span>Leads</button>
+<button onclick="openTab('finance')"><span class="icon">💰</span>Finance</button>
+<button onclick="openTab('focus')"><span class="icon">⏱️</span>Focus</button>
+<button onclick="openTab('notes')"><span class="icon">📝</span>Notes</button>
+</nav>
+
+<script>
+// === DATA LAYER ===
+const store = {
+  get(key, def=[]) { try { return JSON.parse(localStorage.getItem('forge_'+key)) || def } catch { return def } },
+  set(key, val) { localStorage.setItem('forge_'+key, JSON.stringify(val)) },
+  id() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
+};
+
+// === TAB NAVIGATION ===
+function openTab(name) {
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
+  document.getElementById('tab-'+name).classList.add('active');
+  const tabs = ['dashboard','tasks','leads','finance','focus','notes'];
+  document.querySelectorAll('nav button')[tabs.indexOf(name)].classList.add('active');
+  if(name==='dashboard') renderDashboard();
+  if(name==='tasks') renderTasks();
+  if(name==='leads') renderLeads();
+  if(name==='finance') renderFinance();
+  if(name==='notes') renderNotes();
+}
+
+function closeModal(id) { document.getElementById(id).classList.remove('show') }
+function showModal(id) { document.getElementById(id).classList.add('show') }
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', e => { if(e.target === m) m.classList.remove('show') });
+});
+
+// === DASHBOARD ===
+function renderDashboard() {
+  const tasks = store.get('tasks');
+  const today = new Date().toISOString().slice(0,10);
+  const month = new Date().toISOString().slice(0,7);
+  const txns = store.get('transactions');
+  
+  const active = tasks.filter(t => t.status !== 'done').length;
+  const doneToday = tasks.filter(t => t.status === 'done' && t.completedAt && t.completedAt.startsWith(today)).length;
+  
+  document.getElementById('d-tasks').textContent = active;
+  document.getElementById('d-done').textContent = doneToday;
+  document.getElementById('d-streak').textContent = calcStreak();
+  
+  const mIncome = txns.filter(t => t.type==='income' && t.date.startsWith(month)).reduce((s,t) => s+t.amount, 0);
+  const mExpense = txns.filter(t => t.type==='expense' && t.date.startsWith(month)).reduce((s,t) => s+t.amount, 0);
+  // Show Copilot monthly avg if no manual transactions this month
+  document.getElementById('d-income').textContent = mIncome ? '$'+mIncome.toFixed(0) : '~$1,580';
+  document.getElementById('d-expense').textContent = mExpense ? '$'+mExpense.toFixed(0) : '~$2,461';
+  
+  // Recent activity
+  const recent = [...tasks.slice(-3).reverse().map(t => ({text: t.title, type: 'task', time: t.createdAt})),
+    ...store.get('leads').slice(-3).reverse().map(l => ({text: l.name+' — '+l.service, type: 'lead', time: l.createdAt})),
+    ...txns.slice(-3).reverse().map(t => ({text: (t.type==='income'?'+':'-')+'$'+t.amount+' '+t.category, type: 'txn', time: t.date}))
+  ].sort((a,b) => b.time > a.time ? 1 : -1).slice(0,5);
+  
+  const el = document.getElementById('d-recent');
+  if(!recent.length) { el.innerHTML = '<div class="empty">No activity yet. Start by adding a task!</div>'; return; }
+  el.innerHTML = recent.map(r => `<div class="list-item"><div class="meta">${r.time ? new Date(r.time).toLocaleDateString() : ''}</div><div>${r.text}</div></div>`).join('');
+}
+
+function calcStreak() {
+  const tasks = store.get('tasks').filter(t => t.status === 'done' && t.completedAt);
+  if(!tasks.length) return 0;
+  const days = [...new Set(tasks.map(t => t.completedAt.slice(0,10)))].sort().reverse();
+  let streak = 0;
+  let d = new Date(); d.setHours(0,0,0,0);
+  for(const day of days) {
+    const check = d.toISOString().slice(0,10);
+    if(day === check) { streak++; d.setDate(d.getDate()-1); }
+    else if(day < check) break;
+  }
+  return streak;
+}
+
+// === TASKS ===
+function openTaskModal(id) {
+  const t = id ? store.get('tasks').find(x => x.id===id) : null;
+  document.getElementById('task-modal-title').textContent = t ? 'Edit Task' : 'New Task';
+  document.getElementById('task-edit-id').value = t ? t.id : '';
+  document.getElementById('task-title').value = t ? t.title : '';
+  document.getElementById('task-priority').value = t ? t.priority : 'medium';
+  document.getElementById('task-category').value = t ? t.category : 'personal';
+  document.getElementById('task-status').value = t ? t.status : 'todo';
+  document.getElementById('task-due').value = t ? (t.due||'') : '';
+  showModal('modal-task');
+}
+
+function saveTask() {
+  const title = document.getElementById('task-title').value.trim();
+  if(!title) return;
+  const editId = document.getElementById('task-edit-id').value;
+  const tasks = store.get('tasks');
+  const now = new Date().toISOString();
+  const status = document.getElementById('task-status').value;
+  
+  if(editId) {
+    const idx = tasks.findIndex(t => t.id===editId);
+    if(idx>-1) {
+      const wasNotDone = tasks[idx].status !== 'done';
+      tasks[idx] = {...tasks[idx], title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, status, due: document.getElementById('task-due').value, updatedAt: now};
+      if(status === 'done' && wasNotDone) tasks[idx].completedAt = now;
+    }
+  } else {
+    tasks.push({id: store.id(), title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, status, due: document.getElementById('task-due').value, createdAt: now, updatedAt: now, completedAt: status==='done' ? now : null});
+  }
+  store.set('tasks', tasks);
+  closeModal('modal-task');
+  renderTasks();
+}
+
+function deleteTask(id) {
+  const tasks = store.get('tasks').filter(t => t.id !== id);
+  store.set('tasks', tasks);
+  renderTasks();
+}
+
+function cycleTaskStatus(id) {
+  const tasks = store.get('tasks');
+  const t = tasks.find(x => x.id===id);
+  if(!t) return;
+  const cycle = ['todo','in-progress','done'];
+  const next = cycle[(cycle.indexOf(t.status)+1) % cycle.length];
+  t.status = next;
+  if(next === 'done') t.completedAt = new Date().toISOString();
+  t.updatedAt = new Date().toISOString();
+  store.set('tasks', tasks);
+  renderTasks();
+}
+
+function renderTasks() {
+  let tasks = store.get('tasks');
+  const search = (document.getElementById('task-search')?.value||'').toLowerCase();
+  const fStatus = document.getElementById('task-filter-status')?.value||'all';
+  const fPri = document.getElementById('task-filter-priority')?.value||'all';
+  
+  if(search) tasks = tasks.filter(t => t.title.toLowerCase().includes(search));
+  if(fStatus!=='all') tasks = tasks.filter(t => t.status===fStatus);
+  if(fPri!=='all') tasks = tasks.filter(t => t.priority===fPri);
+  
+  tasks.sort((a,b) => {
+    const po = {urgent:0,high:1,medium:2,low:3};
+    if(po[a.priority] !== po[b.priority]) return po[a.priority]-po[b.priority];
+    return (b.updatedAt||'').localeCompare(a.updatedAt||'');
+  });
+  
+  const el = document.getElementById('task-list');
+  if(!tasks.length) { el.innerHTML = '<div class="empty">No tasks found</div>'; return; }
+  el.innerHTML = tasks.map(t => `<div class="list-item" onclick="cycleTaskStatus('${t.id}')">
+    <div class="actions"><button onclick="event.stopPropagation();openTaskModal('${t.id}')">✏️</button><button onclick="event.stopPropagation();deleteTask('${t.id}')">🗑️</button></div>
+    <div class="title">${esc(t.title)}</div>
+    <div class="meta"><span class="badge badge-${t.status}">${t.status}</span> <span class="badge badge-${t.priority}">${t.priority}</span> ${t.category} ${t.due ? '· Due '+t.due : ''}</div>
+  </div>`).join('');
+}
+
+// === LEADS ===
+function openLeadModal(id) {
+  const l = id ? store.get('leads').find(x => x.id===id) : null;
+  document.getElementById('lead-modal-title').textContent = l ? 'Edit Lead' : 'New Lead';
+  document.getElementById('lead-edit-id').value = l ? l.id : '';
+  document.getElementById('lead-name').value = l ? l.name : '';
+  document.getElementById('lead-phone').value = l ? l.phone : '';
+  document.getElementById('lead-source').value = l ? l.source : 'phone';
+  document.getElementById('lead-service').value = l ? l.service : '';
+  document.getElementById('lead-status').value = l ? l.status : 'new';
+  document.getElementById('lead-notes').value = l ? l.notes : '';
+  showModal('modal-lead');
+}
+
+function saveLead() {
+  const name = document.getElementById('lead-name').value.trim();
+  if(!name) return;
+  const editId = document.getElementById('lead-edit-id').value;
+  const leads = store.get('leads');
+  const now = new Date().toISOString();
+  const data = {name, phone: document.getElementById('lead-phone').value, source: document.getElementById('lead-source').value, service: document.getElementById('lead-service').value, status: document.getElementById('lead-status').value, notes: document.getElementById('lead-notes').value};
+  
+  if(editId) {
+    const idx = leads.findIndex(l => l.id===editId);
+    if(idx>-1) leads[idx] = {...leads[idx], ...data, updatedAt: now};
+  } else {
+    leads.push({id: store.id(), ...data, createdAt: now, updatedAt: now});
+  }
+  store.set('leads', leads);
+  closeModal('modal-lead');
+  renderLeads();
+}
+
+function deleteLead(id) {
+  store.set('leads', store.get('leads').filter(l => l.id !== id));
+  renderLeads();
+}
+
+function renderLeads() {
+  let leads = store.get('leads');
+  const filter = document.getElementById('lead-filter')?.value||'all';
+  if(filter!=='all') leads = leads.filter(l => l.status===filter);
+  leads.sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+  
+  const el = document.getElementById('lead-list');
+  if(!leads.length) { el.innerHTML = '<div class="empty">No leads yet. Add your first customer!</div>'; return; }
+  el.innerHTML = leads.map(l => `<div class="list-item">
+    <div class="actions"><button onclick="openLeadModal('${l.id}')">✏️</button><button onclick="deleteLead('${l.id}')">🗑️</button></div>
+    <div class="title">${esc(l.name)}</div>
+    <div class="meta"><span class="badge badge-${l.status}">${l.status}</span> ${l.service ? '· '+esc(l.service) : ''} · via ${l.source}</div>
+    ${l.phone ? `<div class="meta" style="margin-top:4px"><a href="tel:${l.phone}" class="tel" onclick="event.stopPropagation()">📞 ${esc(l.phone)}</a></div>` : ''}
+    ${l.notes ? `<div class="meta" style="margin-top:4px">${esc(l.notes)}</div>` : ''}
+  </div>`).join('');
+}
+
+// === FINANCE ===
+let finPeriod = 'copilot';
+
+// Copilot historical data (baked in from 938 transactions)
+const COPILOT = {
+  totalIncome: 26546,
+  totalSpend: 16398,
+  bizInvested: 5109,
+  incomeSources: [
+    {name:'Botanic (current employer)',amt:6124,color:'var(--green)'},
+    {name:'Pennington PA (law firm)',amt:4769,color:'#3498db'},
+    {name:'The Blu Halo (tips)',amt:509,color:'#9b59b6'},
+    {name:'Large deposits',amt:13760,color:'var(--warm)'},
+    {name:'Other',amt:1384,color:'var(--muted)'}
+  ],
+  topMerchants: [
+    {name:'Walmart',amt:2160,visits:47},
+    {name:'Publix',amt:1314,visits:28},
+    {name:'Circle K',amt:1076,visits:24},
+    {name:'Shell',amt:696,visits:15},
+    {name:'Moores Mill Eyecare',amt:641,visits:3},
+    {name:'Shopify',amt:472,visits:16},
+    {name:'1-800 Contacts',amt:457,visits:2},
+    {name:'Marathon',amt:405,visits:14},
+    {name:'Oaks Retreat',amt:373,visits:2},
+    {name:'Whataburger',amt:360,visits:25}
+  ],
+  restaurants: [
+    {name:'Whataburger',visits:25,total:360,avg:14.38},
+    {name:'Chipotle',visits:21,total:260,avg:12.39},
+    {name:'Chick-fil-A',visits:15,total:268,avg:17.85},
+    {name:'Firehouse Subs',visits:12,total:209,avg:17.39},
+    {name:'Cook Out',visits:11,total:203,avg:18.48},
+    {name:'Waffle House',visits:11,total:211,avg:19.21},
+    {name:'Domino\'s',visits:8,total:145,avg:18.17},
+    {name:'Your Pie',visits:7,total:183,avg:26.15},
+    {name:'Jimmy Johns',visits:7,total:101,avg:14.45},
+    {name:'Foosackly\'s',visits:6,total:79,avg:13.16}
+  ],
+  recurring: [
+    {name:'Alabama Power',amt:127},
+    {name:'Auto-Owners Insurance',amt:100},
+    {name:'Water Works',amt:74},
+    {name:'Crunch Fitness',amt:27},
+    {name:'Squarespace',amt:25},
+    {name:'ChatGPT',amt:20},
+    {name:'QuickBooks',amt:10.79},
+    {name:'Claude Max (new)',amt:200},
+    {name:'Kimi K2.5 (new)',amt:19}
+  ],
+  timeline: [
+    {date:'Oct 2023',event:'Shopify dropshipping ($39/mo)',icon:'🛒'},
+    {date:'Jan 2024',event:'ElevenLabs AI voice ($11)',icon:'🤖'},
+    {date:'Mar 2024',event:'Coinbase crypto + thrift resale',icon:'💎'},
+    {date:'Jun 2024',event:'$4,800 Zelle from Sahil Mehra',icon:'💰'},
+    {date:'Dec 2024',event:'Robinhood $1K withdrawal',icon:'📈'},
+    {date:'Mar 2025',event:'Botanic income starts',icon:'🌿'},
+    {date:'Mar 2025',event:'Skydive Key West + Keys trip',icon:'🪂'},
+    {date:'Jun 2025',event:'RED CLAY BORN — $1,499 training',icon:'🔥'},
+    {date:'Jun 2025',event:'ZenBusiness LLC ($435)',icon:'📋'},
+    {date:'Jul 2025',event:'Amarr doors $573 + parts orders',icon:'🚪'},
+    {date:'Feb 2026',event:'AI agent stack ($239/mo)',icon:'🌪️'}
+  ],
+  accounts: [
+    {name:'Checking FCCU',id:'9181',type:'Primary checking'},
+    {name:'HYSA FCCU',id:'9181',type:'Savings (10% auto)'},
+    {name:'Business Checking Truist',id:'7466',type:'Red Clay'},
+    {name:'Personal Checking Truist',id:'8785',type:'Original primary'},
+    {name:'Delta SkyMiles Gold',id:'1006',type:'Primary CC'},
+    {name:'Discover it Card',id:'0490',type:'Secondary CC'},
+    {name:'Venmo/Cash App',id:'—',type:'P2P'}
+  ]
+};
+
+function setFinPeriod(p) {
+  finPeriod = p;
+  document.querySelectorAll('[id^="fp-"]').forEach(b => b.classList.remove('btn-warm'));
+  document.getElementById('fp-'+p).classList.add('btn-warm');
+  document.getElementById('fp-'+p).classList.remove('btn-outline');
+  ['month','all','copilot'].filter(x=>x!==p).forEach(x=>{
+    document.getElementById('fp-'+x).classList.add('btn-outline');
+  });
+  renderFinance();
+}
+
+function openFinanceModal(type) {
+  document.getElementById('fin-type').value = type || 'expense';
+  document.getElementById('fin-amount').value = '';
+  document.getElementById('fin-desc').value = '';
+  showModal('modal-finance');
+}
+
+function saveTransaction() {
+  const amount = parseFloat(document.getElementById('fin-amount').value);
+  if(!amount || amount <= 0) return;
+  const txns = store.get('transactions');
+  txns.push({
+    id: store.id(),
+    type: document.getElementById('fin-type').value,
+    amount,
+    category: document.getElementById('fin-category').value,
+    description: document.getElementById('fin-desc').value,
+    date: new Date().toISOString()
+  });
+  store.set('transactions', txns);
+  closeModal('modal-finance');
+  renderFinance();
+}
+
+function renderFinance() {
+  const copilotPanel = document.getElementById('copilot-panel');
+  const manualPanel = document.getElementById('manual-panel');
+
+  if(finPeriod === 'copilot') {
+    copilotPanel.style.display = 'block';
+    manualPanel.style.display = 'none';
+    renderCopilotData();
+    document.getElementById('f-income').textContent = '$26,546';
+    document.getElementById('f-expense').textContent = '$16,398';
+    const netEl = document.getElementById('f-net');
+    netEl.textContent = '-$881/mo';
+    netEl.className = 'num money-red';
+    return;
+  }
+
+  copilotPanel.style.display = 'none';
+  manualPanel.style.display = 'block';
+
+  const txns = store.get('transactions');
+  let filtered = txns;
+  if(finPeriod === 'month') {
+    const month = new Date().toISOString().slice(0,7);
+    filtered = txns.filter(t => t.date.startsWith(month));
+  }
+
+  const income = filtered.filter(t => t.type==='income').reduce((s,t) => s+t.amount, 0);
+  const expense = filtered.filter(t => t.type==='expense').reduce((s,t) => s+t.amount, 0);
+  const net = income - expense;
+
+  document.getElementById('f-income').textContent = '$'+income.toFixed(0);
+  document.getElementById('f-expense').textContent = '$'+expense.toFixed(0);
+  const netEl = document.getElementById('f-net');
+  netEl.textContent = (net >= 0 ? '+$' : '-$') + Math.abs(net).toFixed(0);
+  netEl.className = 'num ' + (net >= 0 ? 'money-green' : 'money-red');
+
+  // Category breakdown
+  const cats = {};
+  filtered.filter(t => t.type==='expense').forEach(t => { cats[t.category] = (cats[t.category]||0) + t.amount });
+  const catEl = document.getElementById('f-categories');
+  const maxCat = Math.max(...Object.values(cats), 1);
+  if(!Object.keys(cats).length) { catEl.innerHTML = '<div class="empty">No expenses this period</div>'; }
+  else {
+    catEl.innerHTML = Object.entries(cats).sort((a,b) => b[1]-a[1]).map(([cat,amt]) => `<div class="card" style="padding:10px">
+      <div style="display:flex;justify-content:space-between"><span>${cat}</span><span>$${amt.toFixed(0)}</span></div>
+      <div class="progress-bar"><div class="fill" style="width:${(amt/maxCat*100).toFixed(0)}%;background:var(--accent)"></div></div>
+    </div>`).join('');
+  }
+
+  // Recent
+  const recEl = document.getElementById('f-recent');
+  const recent = filtered.slice(-15).reverse();
+  if(!recent.length) { recEl.innerHTML = '<div class="empty">No transactions yet — add manually or switch to Copilot Data</div>'; return; }
+  recEl.innerHTML = recent.map(t => `<div class="list-item" style="padding:10px">
+    <div style="display:flex;justify-content:space-between;align-items:center">
+      <div><div style="font-weight:600">${esc(t.description||t.category)}</div><div class="meta">${t.category} · ${new Date(t.date).toLocaleDateString()}</div></div>
+      <div class="${t.type==='income'?'money-green':'money-red'}" style="font-weight:700;font-size:16px">${t.type==='income'?'+':'-'}$${t.amount.toFixed(2)}</div>
+    </div>
+  </div>`).join('');
+}
+
+function bar(pct,color) {
+  return `<div class="progress-bar"><div class="fill" style="width:${Math.min(pct,100).toFixed(0)}%;background:${color||'var(--accent)'}"></div></div>`;
+}
+
+function renderCopilotData() {
+  const C = COPILOT;
+  const maxInc = Math.max(...C.incomeSources.map(s=>s.amt));
+
+  // Income sources
+  document.getElementById('cp-income-sources').innerHTML = C.incomeSources.map(s =>
+    `<div class="card" style="padding:10px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between"><span>${s.name}</span><span style="color:${s.color};font-weight:700">$${s.amt.toLocaleString()}</span></div>
+      ${bar(s.amt/maxInc*100, s.color)}
+    </div>`
+  ).join('');
+
+  // Top merchants
+  const maxM = C.topMerchants[0].amt;
+  document.getElementById('cp-top-merchants').innerHTML = C.topMerchants.map(m =>
+    `<div class="card" style="padding:10px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between"><span>${m.name}</span><span style="font-weight:700">$${m.amt.toLocaleString()} <span class="meta">(${m.visits}x)</span></span></div>
+      ${bar(m.amt/maxM*100)}
+    </div>`
+  ).join('');
+
+  // Restaurants
+  document.getElementById('cp-restaurants').innerHTML = `<div class="card" style="padding:12px">
+    <table style="width:100%;font-size:13px;border-collapse:collapse">
+    <tr style="color:var(--muted);text-align:left"><th style="padding:4px">Restaurant</th><th>Visits</th><th>Total</th><th>Avg</th></tr>
+    ${C.restaurants.map((r,i) => `<tr style="border-top:1px solid var(--border)">
+      <td style="padding:6px 4px">${i===0?'👑 ':''}${r.name}</td>
+      <td style="color:var(--warm)">${r.visits}</td>
+      <td>$${r.total}</td>
+      <td class="meta">$${r.avg.toFixed(0)}</td>
+    </tr>`).join('')}
+    </table>
+  </div>`;
+
+  // Recurring
+  const totalRec = C.recurring.reduce((s,r)=>s+r.amt,0);
+  document.getElementById('cp-recurring').innerHTML = `<div class="card" style="padding:12px">
+    ${C.recurring.map(r => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border)">
+      <span>${r.name}</span><span style="font-weight:600">$${r.amt.toFixed(r.amt%1?2:0)}/mo</span>
+    </div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-weight:700;color:var(--accent)">
+      <span>TOTAL</span><span>$${totalRec.toFixed(0)}/mo</span>
+    </div>
+  </div>`;
+
+  // Timeline
+  document.getElementById('cp-timeline').innerHTML = `<div class="card" style="padding:12px">
+    ${C.timeline.map(t => `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start">
+      <span style="font-size:18px">${t.icon}</span>
+      <div><div style="font-weight:600;font-size:13px">${t.event}</div><div class="meta">${t.date}</div></div>
+    </div>`).join('')}
+  </div>`;
+
+  // Accounts
+  document.getElementById('cp-accounts').innerHTML = `<div class="card" style="padding:12px">
+    ${C.accounts.map(a => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
+      <div><span style="font-weight:600">${a.name}</span> <span class="meta">(${a.id})</span></div>
+      <span class="meta">${a.type}</span>
+    </div>`).join('')}
+  </div>`;
+}
+
+// === FOCUS TIMER ===
+let timerInterval = null;
+let timerSeconds = 25 * 60;
+let timerTotal = 25 * 60;
+let timerRunning = false;
+let timerMode = 'work';
+let timerSessions = parseInt(localStorage.getItem('forge_timer_sessions')||'0');
+
+function setTimerMode(mode) {
+  timerMode = mode;
+  const times = {work: 25*60, short: 5*60, long: 15*60};
+  const labels = {work: 'WORK', short: 'SHORT BREAK', long: 'LONG BREAK'};
+  timerTotal = times[mode];
+  timerSeconds = timerTotal;
+  timerRunning = false;
+  clearInterval(timerInterval);
+  document.getElementById('timer-start').textContent = 'Start';
+  updateTimerDisplay();
+  document.getElementById('timer-mode').textContent = labels[mode];
+}
+
+function toggleTimer() {
+  if(timerRunning) {
+    clearInterval(timerInterval);
+    timerRunning = false;
+    document.getElementById('timer-start').textContent = 'Resume';
+  } else {
+    timerRunning = true;
+    document.getElementById('timer-start').textContent = 'Pause';
+    timerInterval = setInterval(() => {
+      timerSeconds--;
+      if(timerSeconds <= 0) {
+        clearInterval(timerInterval);
+        timerRunning = false;
+        if(timerMode === 'work') {
+          timerSessions++;
+          localStorage.setItem('forge_timer_sessions', timerSessions);
+          document.getElementById('timer-sessions').textContent = timerSessions;
+        }
+        document.getElementById('timer-start').textContent = 'Start';
+        // Auto switch
+        if(timerMode === 'work') setTimerMode(timerSessions % 4 === 0 ? 'long' : 'short');
+        else setTimerMode('work');
+        try { new Notification('Forge Timer', {body: timerMode === 'work' ? 'Break is over! Time to focus.' : 'Great work! Take a break.'}); } catch {}
+      }
+      updateTimerDisplay();
+    }, 1000);
+  }
+}
+
+function resetTimer() { setTimerMode(timerMode); }
+function skipTimer() {
+  clearInterval(timerInterval);
+  timerRunning = false;
+  if(timerMode === 'work') setTimerMode('short');
+  else setTimerMode('work');
+}
+
+function updateTimerDisplay() {
+  const m = Math.floor(timerSeconds/60);
+  const s = timerSeconds % 60;
+  document.getElementById('timer-display').textContent = m.toString().padStart(2,'0') + ':' + s.toString().padStart(2,'0');
+  const pct = 1 - timerSeconds / timerTotal;
+  document.getElementById('timer-progress').setAttribute('stroke-dashoffset', (628.32 * (1-pct)).toFixed(2));
+  document.getElementById('timer-sessions').textContent = timerSessions;
+}
+
+// === NOTES ===
+function openNoteModal(id) {
+  const n = id ? store.get('notes').find(x => x.id===id) : null;
+  document.getElementById('note-modal-title').textContent = n ? 'Edit Note' : 'New Note';
+  document.getElementById('note-edit-id').value = n ? n.id : '';
+  document.getElementById('note-text').value = n ? n.text : '';
+  showModal('modal-note');
+}
+
+function saveNote() {
+  const text = document.getElementById('note-text').value.trim();
+  if(!text) return;
+  const editId = document.getElementById('note-edit-id').value;
+  const notes = store.get('notes');
+  const now = new Date().toISOString();
+  if(editId) {
+    const idx = notes.findIndex(n => n.id===editId);
+    if(idx>-1) notes[idx] = {...notes[idx], text, updatedAt: now};
+  } else {
+    notes.push({id: store.id(), text, createdAt: now, updatedAt: now});
+  }
+  store.set('notes', notes);
+  closeModal('modal-note');
+  renderNotes();
+}
+
+function deleteNote(id) {
+  store.set('notes', store.get('notes').filter(n => n.id !== id));
+  renderNotes();
+}
+
+function renderNotes() {
+  const notes = store.get('notes').slice().reverse();
+  const el = document.getElementById('note-list');
+  if(!notes.length) { el.innerHTML = '<div class="empty">No notes yet</div>'; return; }
+  el.innerHTML = notes.map(n => `<div class="list-item">
+    <div class="actions"><button onclick="openNoteModal('${n.id}')">✏️</button><button onclick="deleteNote('${n.id}')">🗑️</button></div>
+    <div style="white-space:pre-wrap">${esc(n.text)}</div>
+    <div class="meta" style="margin-top:6px">${new Date(n.updatedAt||n.createdAt).toLocaleString()}</div>
+  </div>`).join('');
+}
+
+// === UTILS ===
+function esc(s) { const d = document.createElement('div'); d.textContent = s||''; return d.innerHTML; }
+
+// === INIT ===
+if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+if('Notification' in window && Notification.permission === 'default') Notification.requestPermission();
+renderDashboard();
+updateTimerDisplay();
+</script>
+</body>
+</html>
