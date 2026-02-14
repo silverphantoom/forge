@@ -1,4 +1,4 @@
-const CACHE_NAME = 'forge-v2.4';
+const CACHE_NAME = 'forge-v2.5';
 
 self.addEventListener('install', e => {
   self.skipWaiting();

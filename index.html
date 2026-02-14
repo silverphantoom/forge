@@ -119,6 +119,7 @@ nav button .icon{font-size:22px}
 <input type="text" class="search" placeholder="Search tasks..." id="task-search" oninput="renderTasks()">
 <div class="filter-row">
 <select id="task-filter-status" onchange="renderTasks()"><option value="all">All Status</option><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select>
+<select id="task-filter-owner" onchange="renderTasks()"><option value="all">All Owners</option><option value="peyton">👤 Peyton</option><option value="zephyr">🌪️ Zephyr</option></select>
 <select id="task-filter-priority" onchange="renderTasks()"><option value="all">All Priority</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
 <button class="btn btn-sm" onclick="openTaskModal()">+ Add</button>
 </div>
@@ -257,7 +258,8 @@ nav button .icon{font-size:22px}
 <label>Title</label><input type="text" id="task-title" placeholder="What needs to be done?">
 <div class="form-row">
 <div><label>Priority</label><select id="task-priority"><option value="low">Low</option><option value="medium" selected>Medium</option><option value="high">High</option><option value="urgent">Urgent</option></select></div>
-<div><label>Category</label><select id="task-category"><option value="red-clay">Red Clay</option><option value="personal">Personal</option><option value="business">Business</option><option value="learning">Learning</option></select></div>
+<div><label>Category</label><select id="task-category"><option value="red-clay">Red Clay</option><option value="personal">Personal</option><option value="business">Business</option><option value="learning">Learning</option><option value="zephyr-infra">Zephyr Infra</option><option value="content">Content</option><option value="tax">Tax/Finance</option></select></div>
+<div><label>Owner</label><select id="task-owner"><option value="peyton">👤 Peyton</option><option value="zephyr">🌪️ Zephyr</option></select></div>
 </div>
 <div class="form-row">
 <div><label>Status</label><select id="task-status"><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select></div>
@@ -1021,6 +1023,7 @@ function openTaskModal(id) {
   document.getElementById('task-title').value = t ? t.title : '';
   document.getElementById('task-priority').value = t ? t.priority : 'medium';
   document.getElementById('task-category').value = t ? t.category : 'personal';
+  document.getElementById('task-owner').value = t ? (t.owner||'peyton') : 'peyton';
   document.getElementById('task-status').value = t ? t.status : 'todo';
   document.getElementById('task-due').value = t ? (t.due||'') : '';
   showModal('modal-task');
@@ -1036,11 +1039,11 @@ function saveTask() {
     const idx = tasks.findIndex(t => t.id===editId);
     if(idx>-1) {
       const wasNotDone = tasks[idx].status !== 'done';
-      tasks[idx] = {...tasks[idx], title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, status, due: document.getElementById('task-due').value, updatedAt: now};
+      tasks[idx] = {...tasks[idx], title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, owner: document.getElementById('task-owner').value, status, due: document.getElementById('task-due').value, updatedAt: now};
       if(status === 'done' && wasNotDone) tasks[idx].completedAt = now;
     }
   } else {
-    tasks.push({id: store.id(), title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, status, due: document.getElementById('task-due').value, createdAt: now, updatedAt: now, completedAt: status==='done' ? now : null});
+    tasks.push({id: store.id(), title, priority: document.getElementById('task-priority').value, category: document.getElementById('task-category').value, owner: document.getElementById('task-owner').value, status, due: document.getElementById('task-due').value, createdAt: now, updatedAt: now, completedAt: status==='done' ? now : null});
   }
   store.set('tasks', tasks);
   closeModal('modal-task');
@@ -1062,17 +1065,26 @@ function renderTasks() {
   let tasks = store.get('tasks');
   const search = (document.getElementById('task-search')?.value||'').toLowerCase();
   const fStatus = document.getElementById('task-filter-status')?.value||'all';
+  const fOwner = document.getElementById('task-filter-owner')?.value||'all';
   const fPri = document.getElementById('task-filter-priority')?.value||'all';
   if(search) tasks = tasks.filter(t => t.title.toLowerCase().includes(search));
   if(fStatus!=='all') tasks = tasks.filter(t => t.status===fStatus);
+  if(fOwner!=='all') tasks = tasks.filter(t => (t.owner||'peyton')===fOwner);
   if(fPri!=='all') tasks = tasks.filter(t => t.priority===fPri);
-  tasks.sort((a,b) => { const po = {urgent:0,high:1,medium:2,low:3}; return po[a.priority] !== po[b.priority] ? po[a.priority]-po[b.priority] : (b.updatedAt||'').localeCompare(a.updatedAt||''); });
+  // Sort: active first (todo, in-progress), then done. Within each group: priority then recency
+  tasks.sort((a,b) => {
+    const so = {todo:0,'in-progress':1,done:2};
+    if(so[a.status] !== so[b.status]) return so[a.status] - so[b.status];
+    const po = {urgent:0,high:1,medium:2,low:3};
+    return po[a.priority] !== po[b.priority] ? po[a.priority]-po[b.priority] : (b.updatedAt||'').localeCompare(a.updatedAt||'');
+  });
   const el = document.getElementById('task-list');
   if(!tasks.length) { el.innerHTML = '<div class="empty">No tasks found</div>'; return; }
-  el.innerHTML = tasks.map(t => `<div class="list-item" onclick="cycleTaskStatus('${t.id}')">
+  const ownerIcon = o => o === 'zephyr' ? '🌪️' : '👤';
+  el.innerHTML = tasks.map(t => `<div class="list-item ${t.status==='done'?'task-done':''}" onclick="cycleTaskStatus('${t.id}')" style="${t.status==='done'?'opacity:.6':''}">
     <div class="actions"><button onclick="event.stopPropagation();openTaskModal('${t.id}')">✏️</button><button onclick="event.stopPropagation();deleteTask('${t.id}')">🗑️</button></div>
-    <div class="title">${esc(t.title)}</div>
-    <div class="meta"><span class="badge badge-${t.status}">${t.status}</span> <span class="badge badge-${t.priority}">${t.priority}</span> ${t.category} ${t.due ? '· Due '+t.due : ''}</div>
+    <div class="title">${t.status==='done'?'<s>':''}${ownerIcon(t.owner||'peyton')} ${esc(t.title)}${t.status==='done'?'</s>':''}</div>
+    <div class="meta"><span class="badge badge-${t.status}">${t.status}</span> <span class="badge badge-${t.priority}">${t.priority}</span> ${t.category||''} ${t.due ? '· Due '+t.due : ''}</div>
   </div>`).join('');
 }
 
@@ -1150,6 +1162,56 @@ function renderNotes() {
     <div class="meta" style="margin-top:6px">${new Date(n.updatedAt||n.createdAt).toLocaleString()}</div>
   </div>`).join('');
 }
+
+// === SEED TASKS (one-time) ===
+function seedTasks() {
+  if(localStorage.getItem('forge_tasks_seeded_v2')) return;
+  const tasks = store.get('tasks');
+  if(tasks.length > 0) { localStorage.setItem('forge_tasks_seeded_v2','1'); return; }
+  const now = new Date().toISOString();
+  const mk = (title, owner, category, status, priority, due) => ({
+    id: store.id(), title, owner, category, status, priority: priority||'medium',
+    due: due||'', createdAt: now, updatedAt: now, completedAt: status==='done' ? now : null
+  });
+  const seed = [
+    // === ZEPHYR - DONE ===
+    mk('Build Forge PWA + deploy to GitHub Pages','zephyr','zephyr-infra','done','high'),
+    mk('QuickBooks OAuth + auto-sync integration','zephyr','business','done','high'),
+    mk('Morning report automation (3-layer fallback)','zephyr','zephyr-infra','done','high'),
+    mk('Daily opportunity digest (HN + Reddit + PH)','zephyr','business','done','medium'),
+    mk('Red Clay toolkit — 11 business scripts','zephyr','red-clay','done','high'),
+    mk('Voice interface (STT + TTS via Telegram)','zephyr','zephyr-infra','done','medium'),
+    mk('Extract W-2 from Botanic + calculate tax refund','zephyr','tax','done','urgent'),
+    mk('Build Quick Quote tab in Forge','zephyr','red-clay','done','medium'),
+    mk('Build Usage tracking tab in Forge','zephyr','zephyr-infra','done','medium'),
+    mk('Hamburger menu fix + deploy Red Clay site','zephyr','red-clay','done','medium'),
+    mk('Financial analysis (Copilot CSV + QB data)','zephyr','tax','done','medium'),
+    mk('Destroy PM App, recycle features into Forge','zephyr','zephyr-infra','done','low'),
+    mk('Security cleanup (credentials, stale files)','zephyr','zephyr-infra','done','medium'),
+    mk('Draft full article: "24/7 AI Agent for $66/mo"','zephyr','content','done','medium'),
+    mk('Build content landing page','zephyr','content','done','medium'),
+    mk('VPS health + uptime monitoring system','zephyr','zephyr-infra','done','medium'),
+    // === ZEPHYR - IN PROGRESS / TODO ===
+    mk('Auto-deploy Forge data updates (usage + QB)','zephyr','zephyr-infra','done','medium'),
+    mk('Keep Forge polished based on Peyton feedback','zephyr','zephyr-infra','in-progress','high'),
+    mk('Improve morning report content','zephyr','zephyr-infra','todo','low'),
+    mk('Monitor QB token refresh health','zephyr','business','todo','low'),
+    mk('Add Google review monitoring (needs API key)','zephyr','red-clay','todo','medium'),
+    mk('Build weekly revenue trend charts in Forge','zephyr','business','todo','low'),
+    // === PEYTON - TODO ===
+    mk('File 2025 taxes via TurboTax Self-Employed','peyton','tax','todo','urgent','2026-04-15'),
+    mk('Create Twitter/X account (@peytonpaske)','peyton','content','todo','high'),
+    mk('Record demo video of Zephyr/Forge for content','peyton','content','todo','high'),
+    mk('Get Google Places API key for review monitoring','peyton','red-clay','todo','medium'),
+    mk('Deploy landing page to Netlify','peyton','content','todo','medium'),
+    mk('Review & test Quick Quote tab in Forge','peyton','red-clay','todo','medium'),
+    mk('Post launch content: Twitter thread + Reddit','peyton','content','todo','medium'),
+    mk('Connect GitHub to Codex dashboard','peyton','zephyr-infra','todo','low'),
+  ];
+  store.set('tasks', seed);
+  localStorage.setItem('forge_tasks_seeded_v2','1');
+}
+seedTasks();
 
 // === INIT ===
 if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
