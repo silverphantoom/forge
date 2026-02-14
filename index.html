@@ -147,110 +147,40 @@ nav button .icon{font-size:22px}
 <div id="tab-finance" class="tab-content">
 <div class="container">
 <h1>💰 Finance</h1>
+<div class="sync-badge" id="qb-sync-time"></div>
 
-<div class="btn-row" style="margin-bottom:12px">
-<button class="btn btn-sm btn-warm" id="fp-qb" onclick="setFinView('qb')">QuickBooks</button>
-<button class="btn btn-sm btn-outline" id="fp-copilot" onclick="setFinView('copilot')">Personal</button>
-<button class="btn btn-sm btn-outline" id="fp-summary" onclick="setFinView('summary')">Summary</button>
+<!-- Year selector -->
+<div class="btn-row" style="margin-bottom:8px">
+<button class="btn btn-sm btn-warm" id="fy-2025" onclick="setFinYear('2025')">2025</button>
+<button class="btn btn-sm btn-outline" id="fy-2026" onclick="setFinYear('2026')">2026</button>
+<button class="btn btn-sm btn-outline" id="fy-all" onclick="setFinYear('all')">All Time</button>
 </div>
 
-<!-- QuickBooks view -->
-<div id="fin-qb">
-<div class="sync-badge" id="qb-sync-time">Last sync: loading...</div>
+<!-- Month selector (scrollable) -->
+<div style="overflow-x:auto;white-space:nowrap;padding:4px 0 12px;-webkit-overflow-scrolling:touch" id="month-selector"></div>
 
-<h2>Profit & Loss — 2025</h2>
+<!-- Year/All summary stats -->
 <div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
-<div class="stat"><div class="num money-green" id="qb-revenue" style="font-size:22px">$0</div><div class="lbl">Revenue</div></div>
-<div class="stat"><div class="num money-red" id="qb-expenses" style="font-size:22px">$0</div><div class="lbl">Expenses</div></div>
-<div class="stat"><div class="num" id="qb-net" style="font-size:22px">$0</div><div class="lbl">Net Income</div></div>
+<div class="stat"><div class="num money-green" id="f-revenue" style="font-size:20px">$0</div><div class="lbl">Revenue</div></div>
+<div class="stat"><div class="num money-red" id="f-biz-exp" style="font-size:20px">$0</div><div class="lbl">Biz Expenses</div></div>
+<div class="stat"><div class="num" id="f-net" style="font-size:20px">$0</div><div class="lbl">Net</div></div>
 </div>
-
-<h2>Monthly Revenue</h2>
-<div class="card" style="padding:12px;overflow-x:auto">
-<div class="chart-bar" id="qb-monthly-chart"></div>
-</div>
-
-<h2>Revenue Breakdown</h2>
-<div class="card" style="padding:12px">
-<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-<span style="font-weight:600">Services</span><span class="money-green" style="font-weight:700" id="qb-services">$0</span>
-</div>
-<div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-<span style="font-weight:600">Cost of Goods Sold</span><span class="money-red" style="font-weight:700" id="qb-cogs">$0</span>
-</div>
-<div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;color:var(--accent)">
-<span>Gross Profit</span><span id="qb-gross">$0</span>
-</div>
-</div>
-
-<h2>Expense Breakdown</h2>
-<div id="qb-expense-breakdown"></div>
-
-<h2>Balance Sheet</h2>
-<div class="card" style="padding:12px">
-<div id="qb-balance-sheet"></div>
-</div>
-
-<h2>Recent Expenses</h2>
-<div id="qb-recent-expenses"></div>
-</div>
-
-<!-- Copilot/Personal view -->
-<div id="fin-copilot" style="display:none">
-<div class="card" style="border-color:var(--accent)">
-<h2 style="margin-top:0">📊 Personal Financial Profile</h2>
-<div style="font-size:13px;color:var(--muted);margin-bottom:8px">938 transactions · Oct 2023 → Aug 2025 · from Copilot Money</div>
-
-<div class="stat-grid" style="grid-template-columns:1fr 1fr 1fr">
-<div class="stat"><div class="num" style="font-size:18px;color:var(--green)">$26.5k</div><div class="lbl">Income</div></div>
-<div class="stat"><div class="num" style="font-size:18px;color:var(--red)">$16.4k</div><div class="lbl">Spending</div></div>
-<div class="stat"><div class="num" style="font-size:18px;color:var(--accent)">$5.1k</div><div class="lbl">Biz Invested</div></div>
-</div>
-
-<h2>Monthly Recurring (~$406/mo)</h2>
-<div id="cp-recurring"></div>
-
-<h2>🍔 Top Restaurants</h2>
-<div id="cp-restaurants"></div>
-
-<h2>Top Merchants</h2>
-<div id="cp-merchants"></div>
-
-<h2>Accounts (7)</h2>
-<div id="cp-accounts"></div>
-
-<h2>🏗️ Entrepreneurial Timeline</h2>
-<div id="cp-timeline"></div>
-</div>
-</div>
-
-<!-- Summary view -->
-<div id="fin-summary" style="display:none">
-<div class="card" style="border-color:var(--warm)">
-<h2 style="margin-top:0">📋 Full Financial Picture</h2>
-
-<h2>Red Clay (QuickBooks)</h2>
 <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-<div class="stat"><div class="num money-green" style="font-size:20px" id="sum-biz-rev">$0</div><div class="lbl">Biz Revenue</div></div>
-<div class="stat"><div class="num money-red" style="font-size:20px" id="sum-biz-net">$0</div><div class="lbl">Biz Net</div></div>
+<div class="stat"><div class="num" id="f-personal" style="font-size:18px;color:var(--yellow)">$0</div><div class="lbl">Personal (Amex)</div></div>
+<div class="stat"><div class="num" id="f-jobs" style="font-size:18px">0</div><div class="lbl">Jobs</div></div>
 </div>
 
-<h2>Personal (Copilot)</h2>
-<div class="stat-grid" style="grid-template-columns:1fr 1fr">
-<div class="stat"><div class="num" style="font-size:20px;color:var(--green)">~$1,580</div><div class="lbl">Monthly Income</div></div>
-<div class="stat"><div class="num" style="font-size:20px;color:var(--red)">~$2,461</div><div class="lbl">Monthly Spend</div></div>
-</div>
+<!-- Monthly detail content -->
+<div id="fin-detail"></div>
 
-<h2>Cash Position</h2>
-<div id="sum-cash"></div>
-
-<h2>Key Metrics</h2>
-<div id="sum-metrics"></div>
-
-<h2>🎯 Tax Prep (2025)</h2>
-<div id="sum-tax"></div>
+<!-- View toggles -->
+<div class="btn-row" style="margin-top:16px">
+<button class="btn btn-sm btn-outline" onclick="setFinView('categories')">📊 Categories</button>
+<button class="btn btn-sm btn-outline" onclick="setFinView('balance')">🏦 Balance Sheet</button>
+<button class="btn btn-sm btn-outline" onclick="setFinView('copilot')">👤 Personal</button>
+<button class="btn btn-sm btn-outline" onclick="setFinView('tax')">🎯 Tax Prep</button>
 </div>
-</div>
+<div id="fin-extra"></div>
 </div>
 </div>
 
@@ -475,95 +405,271 @@ function renderCustomers() {
 }
 
 // === FINANCE ===
-let finView = 'qb';
+let finYear = '2025';
+let finMonth = 'all';
 
-function setFinView(v) {
-  finView = v;
-  ['qb','copilot','summary'].forEach(x => {
-    document.getElementById('fin-'+x).style.display = x===v ? 'block' : 'none';
-    const btn = document.getElementById('fp-'+x);
-    if(x===v) { btn.classList.add('btn-warm'); btn.classList.remove('btn-outline'); }
+const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+
+function setFinYear(y) {
+  finYear = y;
+  finMonth = 'all';
+  ['2025','2026','all'].forEach(x => {
+    const btn = document.getElementById('fy-'+x);
+    if(x===y) { btn.classList.add('btn-warm'); btn.classList.remove('btn-outline'); }
     else { btn.classList.remove('btn-warm'); btn.classList.add('btn-outline'); }
   });
   renderFinance();
 }
 
-function renderFinance() {
-  if(finView === 'qb') renderQBFinance();
-  else if(finView === 'copilot') renderCopilotData();
-  else renderSummary();
+function setFinMonth(m) {
+  finMonth = m;
+  renderFinance();
 }
 
-function renderQBFinance() {
-  // Sync time
-  document.getElementById('qb-sync-time').textContent = 'Last sync: ' + (QB.lastSync ? new Date(QB.lastSync).toLocaleString() : 'unknown');
+function setFinView(view) {
+  const el = document.getElementById('fin-extra');
+  if(view === 'categories') renderCategoriesView(el);
+  else if(view === 'balance') renderBalanceView(el);
+  else if(view === 'copilot') renderCopilotView(el);
+  else if(view === 'tax') renderTaxView(el);
+}
 
-  // P&L 2025
-  const pnl = QB.pnl2025 || {};
-  document.getElementById('qb-revenue').textContent = fmt(pnl.income || 0);
-  document.getElementById('qb-expenses').textContent = fmt(pnl.expenses || 0);
-  const net = pnl.netIncome || 0;
-  const netEl = document.getElementById('qb-net');
+function getFilteredMonths() {
+  const detail = QB.monthlyDetail || {};
+  const months = Object.keys(detail).sort();
+  if(finYear === 'all') return months;
+  return months.filter(m => m.startsWith(finYear));
+}
+
+function renderFinance() {
+  document.getElementById('qb-sync-time').textContent = QB.lastSync ? 'Synced: ' + new Date(QB.lastSync).toLocaleString() : '';
+
+  // Month selector
+  const allMonths = getFilteredMonths();
+  const monthSel = document.getElementById('month-selector');
+  monthSel.innerHTML = `<button class="btn btn-sm ${finMonth==='all'?'btn-warm':'btn-outline'}" onclick="setFinMonth('all')" style="margin-right:4px">All</button>` +
+    allMonths.map(m => {
+      const [y,mo] = m.split('-');
+      const label = MONTH_NAMES[parseInt(mo)-1] + (finYear==='all' ? ' '+y.slice(2) : '');
+      return `<button class="btn btn-sm ${finMonth===m?'btn-warm':'btn-outline'}" onclick="setFinMonth('${m}')" style="margin-right:4px">${label}</button>`;
+    }).join('');
+
+  // Calculate totals for selected period
+  const detail = QB.monthlyDetail || {};
+  const invMonthly = QB.invoiceMonthly || {};
+  const months = finMonth === 'all' ? allMonths : [finMonth];
+
+  let totalBiz = 0, totalPersonal = 0, totalRevenue = 0, totalJobs = 0;
+  months.forEach(m => {
+    if(detail[m]) { totalBiz += detail[m].business; totalPersonal += detail[m].personal; }
+    if(invMonthly[m]) { totalRevenue += invMonthly[m].total; totalJobs += invMonthly[m].count; }
+  });
+
+  // Also add revenue from P&L if viewing all of a year (invoices may not cover everything)
+  const pnl = finYear === '2025' ? (QB.pnl2025||{}) : finYear === '2026' ? (QB.pnl2026||{}) : {};
+  if(finMonth === 'all' && pnl.income && pnl.income > totalRevenue) totalRevenue = pnl.income;
+
+  const net = totalRevenue - totalBiz;
+
+  document.getElementById('f-revenue').textContent = fmt(totalRevenue);
+  document.getElementById('f-biz-exp').textContent = fmt(totalBiz);
+  const netEl = document.getElementById('f-net');
   netEl.textContent = (net < 0 ? '-' : '+') + fmt(net);
   netEl.className = 'num ' + (net >= 0 ? 'money-green' : 'money-red');
+  document.getElementById('f-personal').textContent = fmt(totalPersonal);
+  document.getElementById('f-jobs').textContent = totalJobs;
 
-  // Revenue breakdown
-  document.getElementById('qb-services').textContent = fmtDec(pnl.income || 0);
-  document.getElementById('qb-cogs').textContent = '-' + fmtDec(pnl.cogs || 0);
-  document.getElementById('qb-gross').textContent = fmtDec((pnl.grossProfit || pnl.income - pnl.cogs) || 0);
+  // Detail section
+  const detailEl = document.getElementById('fin-detail');
 
-  // Monthly chart
-  const labels = QB.monthlyLabels || [];
-  const income = QB.monthlyIncome || [];
-  const expenses = QB.monthlyExpenses || [];
-  const maxVal = Math.max(...income, ...expenses, 1);
-  const chartEl = document.getElementById('qb-monthly-chart');
-  chartEl.innerHTML = labels.map((label, i) => {
-    const inc = income[i] || 0;
-    const exp = expenses[i] || 0;
-    const shortLabel = label.replace(/^(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec).*(\d{4})$/, '$1').slice(0,3);
-    return `<div class="col">
-      <div class="bar" style="height:${(inc/maxVal*100).toFixed(0)}%;background:var(--green);opacity:0.8" title="${label}: ${fmtDec(inc)}"></div>
-      <div class="bar-val">${inc > 0 ? '$'+(inc/1000).toFixed(1)+'k' : ''}</div>
-      <div class="bar-label">${shortLabel}</div>
-    </div>`;
-  }).join('');
+  if(finMonth !== 'all') {
+    // Single month view — show transactions split by biz/personal
+    const mData = detail[finMonth] || {business:0, personal:0, items:[]};
+    const inv = invMonthly[finMonth] || {count:0, total:0};
+    const [y,mo] = finMonth.split('-');
+    const monthName = MONTH_NAMES[parseInt(mo)-1] + ' ' + y;
 
-  // Expense breakdown
-  const expItems = (pnl.items || []).filter(i => i.category === 'Expenses' && i.amount > 0).sort((a,b) => b.amount - a.amount);
-  const maxExp = expItems.length ? expItems[0].amount : 1;
-  const expEl = document.getElementById('qb-expense-breakdown');
-  expEl.innerHTML = expItems.map(item => `<div class="card" style="padding:10px;margin-bottom:6px">
-    <div style="display:flex;justify-content:space-between"><span>${esc(item.name)}</span><span style="font-weight:700">${fmtDec(item.amount)}</span></div>
-    ${bar(item.amount/maxExp*100, 'var(--red)')}
-  </div>`).join('');
+    const bizItems = mData.items.filter(i => i.type === 'business').sort((a,b) => b.amount - a.amount);
+    const persItems = mData.items.filter(i => i.type === 'personal').sort((a,b) => b.amount - a.amount);
 
-  // Balance sheet
+    // Month invoices
+    const monthInvoices = (QB.invoices||[]).filter(i => i.date.startsWith(finMonth));
+
+    detailEl.innerHTML = `
+      ${monthInvoices.length ? `<h2>💵 Revenue — ${monthName}</h2>
+      ${monthInvoices.map(inv => `<div class="list-item" style="padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:600">${esc(inv.customer)}</div>
+          <div class="meta">#${inv.number} · ${inv.date}</div></div>
+          <div class="money-green" style="font-weight:700;font-size:16px">${fmtDec(inv.total)}</div>
+        </div>
+      </div>`).join('')}` : ''}
+
+      <h2>🏢 Business Expenses — ${monthName}</h2>
+      <div class="meta" style="margin-bottom:8px">Delta SkyMiles (Amex) · ${bizItems.length} transactions · ${fmtDec(mData.business)}</div>
+      ${bizItems.length ? bizItems.map(item => `<div class="list-item" style="padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:600;font-size:13px">${esc(item.vendor || item.description || item.category)}</div>
+          <div class="meta">${item.date} · ${esc(item.category)}</div></div>
+          <div class="money-red" style="font-weight:700">${fmtDec(item.amount)}</div>
+        </div>
+      </div>`).join('') : '<div class="empty">No business expenses</div>'}
+
+      <h2>👤 Personal Spending — ${monthName}</h2>
+      <div class="meta" style="margin-bottom:8px">Owner draws on Amex · ${persItems.length} transactions · ${fmtDec(mData.personal)}</div>
+      ${persItems.length ? persItems.map(item => `<div class="list-item" style="padding:10px">
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <div><div style="font-weight:600;font-size:13px">${esc(item.vendor || item.description || 'Unknown')}</div>
+          <div class="meta">${item.date}</div></div>
+          <div style="font-weight:700;color:var(--yellow)">${fmtDec(item.amount)}</div>
+        </div>
+      </div>`).join('') : '<div class="empty">No personal spending</div>'}
+    `;
+  } else {
+    // All months — show monthly summary chart
+    const maxVal = Math.max(...allMonths.map(m => {
+      const d = detail[m] || {};
+      const inv = invMonthly[m] || {};
+      return Math.max((d.business||0)+(d.personal||0), inv.total||0);
+    }), 1);
+
+    detailEl.innerHTML = `
+      <h2>Monthly Overview</h2>
+      <div class="card" style="padding:12px;overflow-x:auto">
+        <div class="chart-bar" id="monthly-overview-chart" style="height:140px">
+          ${allMonths.map(m => {
+            const d = detail[m] || {business:0,personal:0};
+            const inv = invMonthly[m] || {total:0};
+            const [y,mo] = m.split('-');
+            const label = MONTH_NAMES[parseInt(mo)-1] + (finYear==='all' ? "'"+y.slice(2) : '');
+            const revH = (inv.total/maxVal*100).toFixed(0);
+            const bizH = (d.business/maxVal*100).toFixed(0);
+            const persH = (d.personal/maxVal*100).toFixed(0);
+            return `<div class="col" onclick="setFinMonth('${m}')" style="cursor:pointer">
+              <div style="display:flex;gap:2px;align-items:flex-end;height:100%">
+                <div class="bar" style="height:${revH}%;background:var(--green);flex:1" title="Revenue: ${fmtDec(inv.total)}"></div>
+                <div class="bar" style="height:${bizH}%;background:var(--red);flex:1;opacity:.8" title="Biz: ${fmtDec(d.business)}"></div>
+                <div class="bar" style="height:${persH}%;background:var(--yellow);flex:1;opacity:.6" title="Personal: ${fmtDec(d.personal)}"></div>
+              </div>
+              <div class="bar-label" style="writing-mode:horizontal-tb;transform:none;font-size:10px;margin-top:4px">${label}</div>
+            </div>`;
+          }).join('')}
+        </div>
+        <div style="display:flex;gap:16px;justify-content:center;margin-top:8px;font-size:11px">
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--green)"></span> Revenue</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--red)"></span> Biz Exp</span>
+          <span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:var(--yellow)"></span> Personal</span>
+        </div>
+      </div>
+
+      <h2>Month by Month</h2>
+      ${allMonths.slice().reverse().map(m => {
+        const d = detail[m] || {business:0,personal:0};
+        const inv = invMonthly[m] || {count:0,total:0};
+        const [y,mo] = m.split('-');
+        const monthNet = inv.total - d.business;
+        return `<div class="card" style="padding:12px;cursor:pointer" onclick="setFinMonth('${m}')">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <div><div style="font-weight:700;font-size:15px">${MONTH_NAMES[parseInt(mo)-1]} ${y}</div>
+            <div class="meta">${inv.count} job${inv.count!==1?'s':''} · ${(d.items||detail[m]?.items||[]).length} expenses</div></div>
+            <div style="text-align:right">
+              <div class="money-green" style="font-weight:700">${fmtDec(inv.total)} rev</div>
+              <div class="money-red" style="font-size:13px">-${fmtDec(d.business)} biz</div>
+              ${d.personal > 0 ? `<div style="color:var(--yellow);font-size:12px">-${fmtDec(d.personal)} personal</div>` : ''}
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    `;
+  }
+
+  document.getElementById('fin-extra').innerHTML = '';
+}
+
+function renderCategoriesView(el) {
+  const cats = QB.bizCategories || [];
+  const months = getFilteredMonths();
+  const filtered = cats.map(c => {
+    const total = finMonth === 'all' 
+      ? months.reduce((s,m) => s + (c.monthly[m]||0), 0)
+      : (c.monthly[finMonth]||0);
+    return {...c, filteredTotal: total};
+  }).filter(c => c.filteredTotal > 0).sort((a,b) => b.filteredTotal - a.filteredTotal);
+  
+  const max = filtered.length ? filtered[0].filteredTotal : 1;
+  el.innerHTML = `<h2>📊 Business Expense Categories</h2>
+    ${filtered.map(c => `<div class="card" style="padding:10px;margin-bottom:6px">
+      <div style="display:flex;justify-content:space-between"><span>${esc(c.name)}</span><span style="font-weight:700">${fmtDec(c.filteredTotal)}</span></div>
+      ${bar(c.filteredTotal/max*100, 'var(--red)')}
+    </div>`).join('')}`;
+}
+
+function renderBalanceView(el) {
   const bs = QB.balanceSheet || {};
-  document.getElementById('qb-balance-sheet').innerHTML = `
+  el.innerHTML = `<h2>🏦 Balance Sheet</h2><div class="card" style="padding:12px">
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span>💵 Cash</span><span class="money-green" style="font-weight:700">${fmtDec(bs.cash||0)}</span></div>
+      <span>💵 Business Cash</span><span class="money-green" style="font-weight:700">${fmtDec(bs.cash||0)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
-      <span>💳 Credit Card Debt</span><span class="money-red" style="font-weight:700">-${fmtDec(bs.creditCardDebt||0)}</span></div>
+      <span>💳 Delta SkyMiles Balance</span><span class="money-red" style="font-weight:700">-${fmtDec(bs.creditCardDebt||0)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
       <span>📦 Total Assets</span><span style="font-weight:700">${fmtDec(bs.totalAssets||0)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)">
       <span>💰 Owner Investment</span><span style="font-weight:700;color:var(--warm)">${fmtDec(bs.ownerInvestment||0)}</span></div>
     <div style="display:flex;justify-content:space-between;padding:8px 0">
-      <span>📤 Owner Draws</span><span style="font-weight:700">${fmtDec(bs.ownerDraws||0)}</span></div>`;
-
-  // Recent expenses
-  const recentExp = (QB.expenses || []).slice(0, 15);
-  document.getElementById('qb-recent-expenses').innerHTML = recentExp.map(e => `<div class="list-item" style="padding:10px">
-    <div style="display:flex;justify-content:space-between;align-items:center">
-      <div><div style="font-weight:600">${esc(e.vendor || 'Unknown')}</div>
-      <div class="meta">${e.date} · ${e.paymentType || ''} ${e.lines.length ? '· ' + esc(e.lines[0].account) : ''}</div></div>
-      <div class="money-red" style="font-weight:700">${fmtDec(e.total)}</div>
-    </div>
-  </div>`).join('');
+      <span>📤 Owner Draws</span><span style="font-weight:700">${fmtDec(bs.ownerDraws||0)}</span></div>
+    <div style="margin-top:12px;padding:8px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--muted)">
+      💡 Owner draws = personal spending on biz Amex. Owner investments = cash put into the business. Net equity: ${fmtDec((bs.ownerInvestment||0)-(bs.ownerDraws||0))}</div>
+  </div>`;
 }
 
-// Copilot historical data
+function renderCopilotView(el) {
+  const C = COPILOT;
+  const totalRec = C.recurring.reduce((s,r)=>s+r.amt,0);
+  el.innerHTML = `<h2>👤 Personal Financial Profile</h2>
+  <div class="meta" style="margin-bottom:8px">From Copilot Money · 938 transactions · Oct 2023 → Aug 2025</div>
+  <div class="card" style="padding:12px">
+    <div style="font-weight:700;margin-bottom:8px">Monthly Recurring (~$${totalRec.toFixed(0)}/mo)</div>
+    ${C.recurring.map(r => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${r.name}</span><span style="font-weight:600">$${r.amt.toFixed(r.amt%1?2:0)}</span></div>`).join('')}
+  </div>
+  <div class="card" style="padding:12px">
+    <div style="font-weight:700;margin-bottom:8px">🍔 Top Restaurants</div>
+    <table class="mini-table"><tr><th>Place</th><th>Visits</th><th>Total</th></tr>
+    ${C.restaurants.map((r,i) => `<tr><td>${i===0?'👑 ':''}${r.name}</td><td style="color:var(--warm)">${r.visits}</td><td>${fmtDec(r.total)}</td></tr>`).join('')}
+    </table>
+  </div>
+  <div class="card" style="padding:12px">
+    <div style="font-weight:700;margin-bottom:8px">🏗️ Entrepreneurial Timeline</div>
+    ${C.timeline.map(t => `<div style="display:flex;gap:10px;padding:5px 0;border-bottom:1px solid var(--border)">
+      <span style="font-size:16px">${t.icon}</span>
+      <div><div style="font-weight:600;font-size:12px">${t.event}</div><div class="meta">${t.date}</div></div>
+    </div>`).join('')}
+  </div>`;
+}
+
+function renderTaxView(el) {
+  const pnl = QB.pnl2025 || {};
+  const expItems = (pnl.items || []).filter(i => i.category === 'Expenses' && i.amount > 0).sort((a,b) => b.amount - a.amount);
+  el.innerHTML = `<h2>🎯 Tax Prep — 2025 Schedule C</h2>
+  <div class="card" style="padding:12px">
+    <div class="meta" style="margin-bottom:8px">Red Clay Garage Services LLC · Sole Proprietorship</div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:2px solid var(--border);font-weight:700">
+      <span>Gross Income (Services)</span><span class="money-green">${fmtDec(pnl.income||0)}</span></div>
+    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
+      <span>Cost of Goods Sold</span><span>-${fmtDec(pnl.cogs||0)}</span></div>
+    ${expItems.map(item => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
+      <span>${esc(item.name)}</span><span>-${fmtDec(item.amount)}</span></div>`).join('')}
+    <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;color:var(--accent);font-size:16px;border-top:2px solid var(--border)">
+      <span>Net Business Income</span><span>${(pnl.netIncome||0) < 0 ? '-' : ''}${fmtDec(pnl.netIncome||0)}</span></div>
+    <div style="margin-top:12px;padding:10px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--muted)">
+      💡 <strong>Net loss of ${fmtDec(Math.abs(pnl.netIncome||0))}</strong> offsets W-2 income from Botanic on your 1040.<br>
+      Self-employment tax = $0 (only applies to net profit).<br>
+      Owner draws (${fmtDec(QB.totals?.ownerDraws||0)} personal on Amex) are NOT deductible — already excluded from expenses above.
+    </div>
+  </div>`;
+}
+
+// Copilot data
 const COPILOT = {
   recurring: [
     {name:'Alabama Power',amt:127},{name:'Auto-Owners Insurance',amt:100},{name:'Water Works',amt:74},
@@ -577,130 +683,17 @@ const COPILOT = {
     {name:"Domino's",visits:8,total:145},{name:'Your Pie',visits:7,total:183},
     {name:"Jimmy John's",visits:7,total:101},{name:"Foosackly's",visits:6,total:79}
   ],
-  merchants: [
-    {name:'Walmart',amt:2160,visits:47},{name:'Publix',amt:1314,visits:28},
-    {name:'Circle K',amt:1076,visits:24},{name:'Shell',amt:696,visits:15},
-    {name:'Shopify',amt:472,visits:16},{name:'Marathon',amt:405,visits:14},
-    {name:'Whataburger',amt:360,visits:25},{name:'RaceTrac',amt:318,visits:12}
-  ],
-  accounts: [
-    {name:'Checking FCCU',id:'9181',type:'Primary checking'},
-    {name:'HYSA FCCU',id:'9181',type:'Savings (10% auto)'},
-    {name:'Business Checking Truist',id:'7466',type:'Red Clay'},
-    {name:'Personal Checking Truist',id:'8785',type:'Original primary'},
-    {name:'Delta SkyMiles Gold',id:'1006',type:'Primary CC'},
-    {name:'Discover it Card',id:'0490',type:'Secondary CC'},
-    {name:'Venmo/Cash App',id:'—',type:'P2P'}
-  ],
   timeline: [
-    {date:'Oct 2023',event:'Shopify dropshipping ($39/mo)',icon:'🛒'},
-    {date:'Jan 2024',event:'ElevenLabs AI voice ($11)',icon:'🤖'},
-    {date:'Mar 2024',event:'Coinbase crypto + thrift resale',icon:'💎'},
-    {date:'Jun 2024',event:'$4,800 Zelle from Sahil Mehra',icon:'💰'},
-    {date:'Dec 2024',event:'Robinhood $1K withdrawal',icon:'📈'},
+    {date:'Oct 2023',event:'Shopify dropshipping',icon:'🛒'},
+    {date:'Jan 2024',event:'ElevenLabs AI voice',icon:'🤖'},
+    {date:'Mar 2024',event:'Crypto + thrift resale',icon:'💎'},
+    {date:'Jun 2024',event:'$4,800 Zelle (Sahil Mehra)',icon:'💰'},
     {date:'Mar 2025',event:'Botanic income starts',icon:'🌿'},
-    {date:'Jun 2025',event:'RED CLAY BORN — $1,499 training',icon:'🔥'},
-    {date:'Jul 2025',event:'Amarr doors $573 + parts',icon:'🚪'},
+    {date:'Jun 2025',event:'RED CLAY — $1,499 training',icon:'🔥'},
+    {date:'Jul 2025',event:'Amarr doors + parts',icon:'🚪'},
     {date:'Feb 2026',event:'AI agent stack ($239/mo)',icon:'🌪️'}
   ]
 };
-
-function renderCopilotData() {
-  // Recurring
-  const totalRec = COPILOT.recurring.reduce((s,r)=>s+r.amt,0);
-  document.getElementById('cp-recurring').innerHTML = `<div class="card" style="padding:12px">
-    ${COPILOT.recurring.map(r => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-      <span>${r.name}</span><span style="font-weight:600">$${r.amt.toFixed(r.amt%1?2:0)}/mo</span>
-    </div>`).join('')}
-    <div style="display:flex;justify-content:space-between;padding:8px 0 0;font-weight:700;color:var(--accent)">
-      <span>TOTAL</span><span>$${totalRec.toFixed(0)}/mo</span></div></div>`;
-
-  // Restaurants
-  document.getElementById('cp-restaurants').innerHTML = `<div class="card" style="padding:12px">
-    <table class="mini-table"><tr><th>Restaurant</th><th>Visits</th><th>Total</th></tr>
-    ${COPILOT.restaurants.map((r,i) => `<tr><td>${i===0?'👑 ':''}${r.name}</td>
-    <td style="color:var(--warm)">${r.visits}</td><td>${fmtDec(r.total)}</td></tr>`).join('')}
-    </table></div>`;
-
-  // Merchants
-  const maxM = COPILOT.merchants[0].amt;
-  document.getElementById('cp-merchants').innerHTML = COPILOT.merchants.map(m =>
-    `<div class="card" style="padding:10px;margin-bottom:6px">
-      <div style="display:flex;justify-content:space-between"><span>${m.name}</span>
-      <span style="font-weight:700">${fmt(m.amt)} <span class="meta">(${m.visits}x)</span></span></div>
-      ${bar(m.amt/maxM*100)}
-    </div>`).join('');
-
-  // Accounts
-  document.getElementById('cp-accounts').innerHTML = `<div class="card" style="padding:12px">
-    ${COPILOT.accounts.map(a => `<div style="display:flex;justify-content:space-between;padding:5px 0;border-bottom:1px solid var(--border)">
-      <div><span style="font-weight:600">${a.name}</span> <span class="meta">(${a.id})</span></div>
-      <span class="meta">${a.type}</span></div>`).join('')}</div>`;
-
-  // Timeline
-  document.getElementById('cp-timeline').innerHTML = `<div class="card" style="padding:12px">
-    ${COPILOT.timeline.map(t => `<div style="display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--border);align-items:flex-start">
-      <span style="font-size:18px">${t.icon}</span>
-      <div><div style="font-weight:600;font-size:13px">${t.event}</div><div class="meta">${t.date}</div></div>
-    </div>`).join('')}</div>`;
-}
-
-function renderSummary() {
-  const pnl = QB.pnl2025 || {};
-  const bs = QB.balanceSheet || {};
-
-  document.getElementById('sum-biz-rev').textContent = fmt(pnl.income || 0);
-  const bizNet = pnl.netIncome || 0;
-  const bizNetEl = document.getElementById('sum-biz-net');
-  bizNetEl.textContent = (bizNet < 0 ? '-' : '+') + fmt(bizNet);
-  bizNetEl.className = 'num ' + (bizNet >= 0 ? 'money-green' : 'money-red');
-
-  // Cash position
-  document.getElementById('sum-cash').innerHTML = `<div class="card" style="padding:12px">
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Business Cash (QB)</span><span class="money-green" style="font-weight:700">${fmtDec(bs.cash||0)}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Credit Card Balance</span><span class="money-red" style="font-weight:700">-${fmtDec(bs.creditCardDebt||0)}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Owner Invested</span><span style="font-weight:700;color:var(--warm)">${fmtDec(bs.ownerInvestment||0)}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;font-weight:700;color:var(--accent)">
-      <span>Net Position</span><span>${fmtDec(bs.totalAssets||0)}</span></div></div>`;
-
-  // Key metrics
-  const invoices = QB.invoices || [];
-  const avgJob = invoices.length ? invoices.reduce((s,i) => s+i.total, 0) / invoices.length : 0;
-  const customers = QB.customers || [];
-  document.getElementById('sum-metrics').innerHTML = `<div class="card" style="padding:12px">
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Avg Job Size</span><span style="font-weight:700">${fmtDec(avgJob)}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Total Customers</span><span style="font-weight:700">${customers.length}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Total Jobs</span><span style="font-weight:700">${invoices.length}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Revenue Per Customer</span><span style="font-weight:700">${customers.length ? fmtDec(invoices.reduce((s,i)=>s+i.total,0)/customers.length) : '$0'}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Monthly Recurring (Personal)</span><span style="font-weight:700;color:var(--red)">~$602/mo</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0">
-      <span>Food Spending</span><span style="font-weight:700;color:var(--yellow)">~$765/mo</span></div></div>`;
-
-  // Tax prep
-  const expItems = (pnl.items || []).filter(i => i.category === 'Expenses' && i.amount > 0).sort((a,b) => b.amount - a.amount);
-  document.getElementById('sum-tax').innerHTML = `<div class="card" style="padding:12px">
-    <div style="font-size:13px;color:var(--muted);margin-bottom:8px">Schedule C — Sole Proprietorship</div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border);font-weight:700">
-      <span>Gross Income (Services)</span><span class="money-green">${fmtDec(pnl.income||0)}</span></div>
-    <div style="display:flex;justify-content:space-between;padding:6px 0;border-bottom:1px solid var(--border)">
-      <span>Cost of Goods Sold</span><span>-${fmtDec(pnl.cogs||0)}</span></div>
-    ${expItems.map(item => `<div style="display:flex;justify-content:space-between;padding:4px 0;border-bottom:1px solid var(--border);font-size:13px">
-      <span>${esc(item.name)}</span><span>-${fmtDec(item.amount)}</span></div>`).join('')}
-    <div style="display:flex;justify-content:space-between;padding:8px 0;font-weight:700;color:var(--accent);font-size:16px">
-      <span>Net Business Income</span><span>${(pnl.netIncome||0) < 0 ? '-' : ''}${fmtDec(pnl.netIncome||0)}</span></div>
-    <div style="margin-top:8px;padding:8px;background:var(--bg);border-radius:8px;font-size:12px;color:var(--muted)">
-      💡 Net loss of ${fmtDec(Math.abs(pnl.netIncome||0))} can offset other income (W-2 from Botanic) on your 1040. 
-      Self-employment tax only applies to net profit — with a loss, SE tax = $0 for Red Clay.
-    </div>
-  </div>`;
 }
 
 // === TASKS ===
