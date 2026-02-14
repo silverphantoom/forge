@@ -196,6 +196,42 @@ nav button .icon{font-size:22px}
 </div>
 </div>
 
+<!-- ===== QUOTE ===== -->
+<div id="tab-quote" class="tab-content">
+<div class="container">
+<h1>📋 Quote</h1>
+<div class="card">
+<label>Customer Name</label><input type="text" id="quote-customer-name" placeholder="Customer name">
+<label>Customer Phone</label><input type="tel" id="quote-customer-phone" placeholder="(850) 555-1234">
+<div class="form-row">
+<div>
+<label>Service Type</label>
+<select id="quote-service" onchange="setQuoteServicePrice()"></select>
+</div>
+<div>
+<label>Price ($)</label>
+<input type="number" id="quote-price" min="0" step="1" inputmode="decimal" placeholder="0">
+</div>
+</div>
+<div class="btn-row" style="margin-top:10px">
+<button class="btn btn-warm" onclick="addQuoteLineItem()">+ Add Line Item</button>
+</div>
+<div id="quote-line-items" style="margin-top:8px"></div>
+<label>Notes / Description</label><textarea id="quote-notes" placeholder="Additional details, warranties, parts, timeline..."></textarea>
+<div class="stat" style="margin-top:12px">
+<div class="num money-green" id="quote-total">$0</div>
+<div class="lbl">Quote Total</div>
+</div>
+<div class="btn-row" style="margin-top:12px">
+<button class="btn" onclick="generateQuote()">Generate Quote</button>
+</div>
+</div>
+
+<h2>Recent Quotes</h2>
+<div id="quote-recent-list"></div>
+</div>
+</div>
+
 <!-- ===== NOTES ===== -->
 <div id="tab-notes" class="tab-content">
 <div class="container">
@@ -257,6 +293,17 @@ nav button .icon{font-size:22px}
 </div>
 </div>
 
+<div class="modal-overlay" id="modal-quote-output">
+<div class="modal">
+<h2>Quote Preview</h2>
+<textarea id="quote-output-text" rows="14" readonly></textarea>
+<div class="btn-row" style="margin-top:16px">
+<button class="btn" onclick="copyQuoteText()">Copy to Clipboard</button>
+<button class="btn btn-outline" onclick="closeModal('modal-quote-output')">Close</button>
+</div>
+</div>
+</div>
+
 <!-- ===== NAV ===== -->
 <nav>
 <button class="active" onclick="openTab('dashboard')"><span class="icon">🏠</span>Home</button>
@@ -264,6 +311,7 @@ nav button .icon{font-size:22px}
 <button onclick="openTab('customers')"><span class="icon">👥</span>Clients</button>
 <button onclick="openTab('finance')"><span class="icon">💰</span>Finance</button>
 <button onclick="openTab('leads')"><span class="icon">🎯</span>Leads</button>
+<button onclick="openTab('quote')"><span class="icon">📋</span>Quote</button>
 <button onclick="openTab('notes')"><span class="icon">📝</span>Notes</button>
 </nav>
 
@@ -284,7 +332,7 @@ function openTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const tabs = ['dashboard','tasks','customers','finance','leads','notes'];
+  const tabs = ['dashboard','tasks','customers','finance','leads','quote','notes'];
   const idx = tabs.indexOf(name);
   if(idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
   if(name==='dashboard') renderDashboard();
@@ -292,6 +340,7 @@ function openTab(name) {
   if(name==='customers') renderCustomers();
   if(name==='finance') renderFinance();
   if(name==='leads') renderLeads();
+  if(name==='quote') renderQuoteTab();
   if(name==='notes') renderNotes();
 }
 function closeModal(id) { document.getElementById(id).classList.remove('show') }
@@ -305,6 +354,171 @@ function esc(s) { const d = document.createElement('div'); d.textContent = s||''
 function fmt(n) { return '$' + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:0, maximumFractionDigits:0}); }
 function fmtDec(n) { return '$' + Math.abs(n).toLocaleString(undefined, {minimumFractionDigits:2, maximumFractionDigits:2}); }
 function bar(pct,color) { return `<div class="progress-bar"><div class="fill" style="width:${Math.min(pct,100).toFixed(0)}%;background:${color||'var(--accent)'}"></div></div>`; }
+
+// === QUOTES ===
+const QUOTE_SERVICES = [
+  { name: 'Garage Door Spring Replacement (single)', price: 250 },
+  { name: 'Garage Door Spring Replacement (double)', price: 350 },
+  { name: 'Garage Door Opener Install', price: 350 },
+  { name: 'Garage Door Opener Repair', price: 150 },
+  { name: 'Garage Door Panel Replacement', price: 300 },
+  { name: 'Garage Door Off-Track Repair', price: 175 },
+  { name: 'Garage Door Tune-Up / Maintenance', price: 125 },
+  { name: 'Garage Door Weatherseal Replacement', price: 100 },
+  { name: 'Custom / Other', price: 0 }
+];
+let quoteLineItems = [];
+let quoteExpandedId = '';
+
+function quoteDate(dt) {
+  return new Date(dt).toLocaleDateString(undefined, { year: 'numeric', month: 'long', day: 'numeric' });
+}
+
+function initQuoteBuilder() {
+  const serviceEl = document.getElementById('quote-service');
+  if(!serviceEl || serviceEl.dataset.ready === '1') return;
+  serviceEl.innerHTML = QUOTE_SERVICES.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join('');
+  serviceEl.dataset.ready = '1';
+  setQuoteServicePrice();
+  quoteLineItems = [];
+  renderQuoteLineItems();
+  renderQuoteRecent();
+}
+
+function setQuoteServicePrice() {
+  const service = document.getElementById('quote-service')?.value || '';
+  const svc = QUOTE_SERVICES.find(s => s.name === service);
+  document.getElementById('quote-price').value = svc ? svc.price : 0;
+}
+
+function addQuoteLineItem() {
+  const service = (document.getElementById('quote-service')?.value || '').trim();
+  const priceVal = parseFloat(document.getElementById('quote-price')?.value || '0');
+  const price = Number.isFinite(priceVal) && priceVal >= 0 ? priceVal : 0;
+  if(!service) return;
+  quoteLineItems.push({ id: store.id(), service, price });
+  renderQuoteLineItems();
+}
+
+function removeQuoteLineItem(id) {
+  quoteLineItems = quoteLineItems.filter(i => i.id !== id);
+  renderQuoteLineItems();
+}
+
+function quoteTotal() {
+  return quoteLineItems.reduce((sum, item) => sum + (parseFloat(item.price) || 0), 0);
+}
+
+function renderQuoteLineItems() {
+  const wrap = document.getElementById('quote-line-items');
+  if(!wrap) return;
+  if(!quoteLineItems.length) {
+    wrap.innerHTML = '<div class="empty" style="padding:14px 10px">No line items yet</div>';
+  } else {
+    wrap.innerHTML = quoteLineItems.map(item => `<div class="list-item" style="padding:10px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px">
+        <div><div class="title" style="margin-bottom:0">${esc(item.service)}</div></div>
+        <div style="display:flex;align-items:center;gap:8px">
+          <div style="font-weight:700">${fmt(item.price)}</div>
+          <button class="btn btn-sm btn-red" onclick="removeQuoteLineItem('${item.id}')">Remove</button>
+        </div>
+      </div>
+    </div>`).join('');
+  }
+  const totalEl = document.getElementById('quote-total');
+  if(totalEl) totalEl.textContent = fmt(quoteTotal());
+}
+
+function buildQuoteText(quote) {
+  const lines = [
+    'RED CLAY GARAGE SERVICES',
+    'Auburn & Opelika, AL',
+    `Date: ${quoteDate(quote.createdAt)}`,
+    '',
+    'QUOTE FOR:',
+    `Customer: ${quote.customerName || 'N/A'}`,
+    `Phone: ${quote.customerPhone || 'N/A'}`,
+    '',
+    'SERVICE LINE ITEMS:'
+  ];
+  quote.items.forEach((item, idx) => lines.push(`${idx + 1}. ${item.service} - ${fmt(item.price)}`));
+  lines.push('', `TOTAL QUOTE: ${fmt(quote.total)}`);
+  if(quote.notes) lines.push('', 'DETAILS:', quote.notes.trim());
+  lines.push('', 'Thank you for considering Red Clay Garage Services.', 'For scheduling or questions, call (850) 591-8939.');
+  return lines.join('\n');
+}
+
+function generateQuote() {
+  if(!quoteLineItems.length) return;
+  const quote = {
+    id: store.id(),
+    customerName: (document.getElementById('quote-customer-name')?.value || '').trim(),
+    customerPhone: (document.getElementById('quote-customer-phone')?.value || '').trim(),
+    items: quoteLineItems.map(i => ({ service: i.service, price: Number(i.price) || 0 })),
+    notes: (document.getElementById('quote-notes')?.value || '').trim(),
+    total: quoteTotal(),
+    createdAt: new Date().toISOString()
+  };
+  quote.text = buildQuoteText(quote);
+  const quotes = store.get('quotes');
+  quotes.unshift(quote);
+  store.set('quotes', quotes.slice(0, 50));
+  document.getElementById('quote-output-text').value = quote.text;
+  showModal('modal-quote-output');
+  quoteLineItems = [];
+  document.getElementById('quote-notes').value = '';
+  renderQuoteLineItems();
+  renderQuoteRecent();
+}
+
+function copyQuoteText() {
+  const text = document.getElementById('quote-output-text')?.value || '';
+  if(!text) return;
+  if(navigator.clipboard?.writeText) {
+    navigator.clipboard.writeText(text).catch(()=>{});
+    return;
+  }
+  const box = document.getElementById('quote-output-text');
+  box.focus();
+  box.select();
+  document.execCommand('copy');
+}
+
+function toggleQuoteExpand(id) {
+  quoteExpandedId = quoteExpandedId === id ? '' : id;
+  renderQuoteRecent();
+}
+
+function renderQuoteRecent() {
+  const el = document.getElementById('quote-recent-list');
+  if(!el) return;
+  const quotes = store.get('quotes').slice(0, 12);
+  if(!quotes.length) {
+    el.innerHTML = '<div class="empty">No quotes generated yet</div>';
+    return;
+  }
+  el.innerHTML = quotes.map(q => {
+    const open = quoteExpandedId === q.id;
+    return `<div class="list-item" style="padding:12px">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:8px">
+        <div>
+          <div class="title">${esc(q.customerName || 'No Name')} · ${fmt(q.total || 0)}</div>
+          <div class="meta">${quoteDate(q.createdAt)}${q.customerPhone ? ' · ' + esc(q.customerPhone) : ''} · ${(q.items||[]).length} item${(q.items||[]).length!==1?'s':''}</div>
+        </div>
+        <button class="btn btn-sm btn-outline" onclick="toggleQuoteExpand('${q.id}')">${open ? 'Hide' : 'View'}</button>
+      </div>
+      ${open ? `<div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border)">
+        <div style="white-space:pre-wrap;font-size:13px;line-height:1.35">${esc(q.text || buildQuoteText(q))}</div>
+      </div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+function renderQuoteTab() {
+  initQuoteBuilder();
+  renderQuoteLineItems();
+  renderQuoteRecent();
+}
 
 // === DASHBOARD ===
 function renderDashboard() {
