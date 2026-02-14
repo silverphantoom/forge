@@ -232,6 +232,14 @@ nav button .icon{font-size:22px}
 </div>
 </div>
 
+<!-- ===== USAGE ===== -->
+<div id="tab-usage" class="tab-content">
+<div class="container">
+<h1>📊 AI Usage</h1>
+<div id="usage-content">Loading usage data...</div>
+</div>
+</div>
+
 <!-- ===== NOTES ===== -->
 <div id="tab-notes" class="tab-content">
 <div class="container">
@@ -312,10 +320,12 @@ nav button .icon{font-size:22px}
 <button onclick="openTab('finance')"><span class="icon">💰</span>Finance</button>
 <button onclick="openTab('leads')"><span class="icon">🎯</span>Leads</button>
 <button onclick="openTab('quote')"><span class="icon">📋</span>Quote</button>
+<button onclick="openTab('usage')"><span class="icon">📊</span>Usage</button>
 <button onclick="openTab('notes')"><span class="icon">📝</span>Notes</button>
 </nav>
 
 <script src="qb-data.js"></script>
+<script src="usage-data.js"></script>
 <script>
 // === DATA LAYER ===
 const store = {
@@ -332,7 +342,7 @@ function openTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const tabs = ['dashboard','tasks','customers','finance','leads','quote','notes'];
+  const tabs = ['dashboard','tasks','customers','finance','leads','quote','usage','notes'];
   const idx = tabs.indexOf(name);
   if(idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
   if(name==='dashboard') renderDashboard();
@@ -341,6 +351,7 @@ function openTab(name) {
   if(name==='finance') renderFinance();
   if(name==='leads') renderLeads();
   if(name==='quote') renderQuoteTab();
+  if(name==='usage') renderUsage();
   if(name==='notes') renderNotes();
 }
 function closeModal(id) { document.getElementById(id).classList.remove('show') }
@@ -512,6 +523,99 @@ function renderQuoteRecent() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+// === USAGE TAB ===
+function fmtNum(n) { return n != null ? n.toLocaleString() : '0'; }
+function fmtCost(n) { return n != null ? '$' + n.toFixed(2) : '$0.00'; }
+
+function renderUsage() {
+  const el = document.getElementById('usage-content');
+  if (typeof USAGE_DATA === 'undefined' || !USAGE_DATA) {
+    el.innerHTML = '<div class="card" style="text-align:center;color:var(--muted)">No usage data yet.<br><small>Data updates automatically via cron.</small></div>';
+    return;
+  }
+  const d = USAGE_DATA;
+  const v = d.vps || {};
+  const stats = (d.openclaw && d.openclaw.sessionStats) || {};
+  const totals = stats.totals || {};
+  const sessions = stats.sessions || [];
+  const ctx = (d.openclaw && d.openclaw.contextUsage) || [];
+
+  function progressBar(pct, color) {
+    const c = color || 'var(--accent)';
+    const bg = 'var(--border)';
+    return '<div style="background:'+bg+';border-radius:4px;height:8px;margin-top:6px;overflow:hidden"><div style="background:'+c+';height:100%;width:'+Math.min(pct,100)+'%;border-radius:4px;transition:width .3s"></div></div>';
+  }
+
+  let html = '';
+
+  // Subscriptions
+  html += '<h2>Subscriptions — $239/mo</h2>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="num" style="font-size:18px">$200</div><div class="lbl">Claude Max</div></div>';
+  html += '<div class="stat"><div class="num" style="font-size:18px">$20</div><div class="lbl">ChatGPT+</div></div>';
+  html += '<div class="stat"><div class="num" style="font-size:18px">$19</div><div class="lbl">Kimi K2.5</div></div>';
+  html += '</div>';
+
+  // VPS Health
+  html += '<h2>VPS Health</h2>';
+  html += '<div class="stat-grid">';
+  const cpuColor = v.cpuPercent > 80 ? 'var(--red)' : v.cpuPercent > 50 ? 'var(--yellow)' : 'var(--green)';
+  const memColor = v.memoryPercent > 80 ? 'var(--red)' : v.memoryPercent > 50 ? 'var(--yellow)' : 'var(--green)';
+  const diskColor = v.diskPercent > 80 ? 'var(--red)' : v.diskPercent > 50 ? 'var(--yellow)' : 'var(--green)';
+  html += '<div class="stat"><div class="num" style="color:'+cpuColor+'">'+(v.cpuPercent||0)+'%</div><div class="lbl">CPU</div></div>';
+  html += '<div class="stat"><div class="num" style="color:'+memColor+'">'+(v.memoryPercent||0)+'%</div><div class="lbl">RAM '+(v.memoryUsedMB||0)+'/'+(v.memoryTotalMB||0)+' MB</div></div>';
+  html += '<div class="stat"><div class="num" style="color:'+diskColor+'">'+(v.diskPercent||0)+'%</div><div class="lbl">Disk</div></div>';
+  html += '</div>';
+  if (v.uptime) html += '<div style="text-align:center;color:var(--muted);font-size:12px;margin-bottom:12px">Uptime: '+v.uptime+'</div>';
+
+  // API Usage Totals
+  html += '<h2>API Usage (Session Totals)</h2>';
+  html += '<div class="stat-grid">';
+  html += '<div class="stat"><div class="num" style="font-size:22px">'+fmtNum(totals.apiCalls)+'</div><div class="lbl">API Calls</div></div>';
+  html += '<div class="stat"><div class="num" style="font-size:22px">'+fmtNum(totals.outputTokens)+'</div><div class="lbl">Output Tokens</div></div>';
+  html += '<div class="stat"><div class="num" style="font-size:22px;color:var(--warm)">'+fmtCost(totals.estimatedCost)+'</div><div class="lbl">Est. API Cost</div></div>';
+  html += '</div>';
+
+  // Session Breakdown
+  if (sessions.length > 0) {
+    html += '<h2>Sessions</h2>';
+    sessions.sort(function(a,b) { return (b.cost||0) - (a.cost||0); });
+    sessions.forEach(function(s) {
+      html += '<div class="card" style="padding:12px">';
+      html += '<div style="display:flex;justify-content:space-between;align-items:center">';
+      html += '<div><strong style="color:var(--warm)">'+s.model+'</strong><br><span style="font-size:11px;color:var(--muted)">'+s.sessionId+'</span></div>';
+      html += '<div style="text-align:right"><span style="font-size:18px;font-weight:700">'+fmtCost(s.cost)+'</span><br><span style="font-size:11px;color:var(--muted)">'+fmtNum(s.calls)+' calls · '+fmtNum(s.outputTokens)+' out</span></div>';
+      html += '</div></div>';
+    });
+  }
+
+  // Context Usage
+  if (ctx.length > 0) {
+    html += '<h2>Context Windows</h2>';
+    ctx.forEach(function(c) {
+      const pct = c.contextUsed || 0;
+      const color = pct > 80 ? 'var(--red)' : pct > 50 ? 'var(--yellow)' : 'var(--green)';
+      const label = c.key ? c.key.replace('agent:main:','') : c.model;
+      html += '<div class="card" style="padding:10px">';
+      html += '<div style="display:flex;justify-content:space-between;font-size:13px"><span>'+label+'</span><span style="color:'+color+'">'+pct+'%</span></div>';
+      html += progressBar(pct, color);
+      html += '</div>';
+    });
+  }
+
+  // Weekly Reset
+  if (d.weeklyReset) {
+    html += '<div style="text-align:center;margin-top:16px;color:var(--muted);font-size:12px">';
+    html += 'Claude resets: ' + (d.weeklyReset.claudeMax || 'Thu') + ' (' + (d.weeklyReset.daysUntilReset||'?') + ' days)';
+    html += '</div>';
+  }
+
+  // Timestamp
+  html += '<div style="text-align:center;margin-top:8px;color:var(--muted);font-size:11px">Last updated: '+(d.timestampCST || d.timestamp || 'unknown')+'</div>';
+
+  el.innerHTML = html;
 }
 
 function renderQuoteTab() {
