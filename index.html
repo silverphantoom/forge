@@ -166,7 +166,7 @@ nav button .icon{font-size:22px}
 <div class="stat"><div class="num" id="f-net" style="font-size:20px">$0</div><div class="lbl">Net</div></div>
 </div>
 <div class="stat-grid" style="grid-template-columns:1fr 1fr">
-<div class="stat"><div class="num" id="f-personal" style="font-size:18px;color:var(--yellow)">$0</div><div class="lbl">Personal (Amex)</div></div>
+<div class="stat"><div class="num" id="f-personal" style="font-size:18px;color:var(--yellow)">$0</div><div class="lbl">Owner Draws</div></div>
 <div class="stat"><div class="num" id="f-jobs" style="font-size:18px">0</div><div class="lbl">Jobs</div></div>
 </div>
 
@@ -515,8 +515,8 @@ function renderFinance() {
         </div>
       </div>`).join('') : '<div class="empty">No business expenses</div>'}
 
-      <h2>👤 Personal Spending — ${monthName}</h2>
-      <div class="meta" style="margin-bottom:8px">Owner draws on Amex · ${persItems.length} transactions · ${fmtDec(mData.personal)}</div>
+      <h2>👤 Owner Draws — ${monthName}</h2>
+      <div class="meta" style="margin-bottom:8px">Personal charges on biz Amex · ${persItems.length} transactions · ${fmtDec(mData.personal)}</div>
       ${persItems.length ? persItems.map(item => `<div class="list-item" style="padding:10px">
         <div style="display:flex;justify-content:space-between;align-items:center">
           <div><div style="font-weight:600;font-size:13px">${esc(item.vendor || item.description || 'Unknown')}</div>
