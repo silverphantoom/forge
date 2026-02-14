@@ -11,7 +11,7 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#1a1a2e;--card:#16213e;--text:#e8e8e8;--muted:#8899aa;--accent:#a53a2a;--warm:#d4a373;--green:#2ecc71;--red:#e74c3c;--yellow:#f39c12;--border:#2a3a5e;--radius:12px}
-body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:70px;-webkit-tap-highlight-color:transparent}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:80px;-webkit-tap-highlight-color:transparent}
 .container{max-width:600px;margin:0 auto;padding:12px}
 h1{font-size:22px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
 h2{font-size:16px;color:var(--warm);margin:16px 0 8px;text-transform:uppercase;letter-spacing:1px;font-weight:600}
@@ -69,6 +69,8 @@ nav{position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px
 nav button{flex:1;background:none;border:none;color:var(--muted);padding:8px 4px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:2px;font-size:10px;min-height:54px;font-family:inherit;transition:color .2s}
 nav button.active{color:var(--accent)}
 nav button .icon{font-size:22px}
+.more-btn{background:none;border:1px solid var(--border);border-radius:12px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font-family:inherit;transition:background .2s}
+.more-btn:active{background:var(--border)}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .tel{color:var(--warm);text-decoration:none}
 .money-green{color:var(--green)}
@@ -314,16 +316,25 @@ nav button .icon{font-size:22px}
 </div>
 </div>
 
+<!-- ===== MORE DRAWER ===== -->
+<div id="more-overlay" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:90" onclick="closeMore()"></div>
+<div id="more-drawer" style="display:none;position:fixed;bottom:0;left:0;right:0;background:var(--card);border-top:1px solid var(--border);border-radius:16px 16px 0 0;z-index:100;padding:16px 16px calc(16px + env(safe-area-inset-bottom));transform:translateY(100%);transition:transform .25s ease">
+<div style="width:36px;height:4px;background:var(--border);border-radius:2px;margin:0 auto 16px"></div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
+<button class="more-btn" onclick="openTab('customers');closeMore()"><span style="font-size:28px">👥</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Clients</span></button>
+<button class="more-btn" onclick="openTab('leads');closeMore()"><span style="font-size:28px">🎯</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Leads</span></button>
+<button class="more-btn" onclick="openTab('usage');closeMore()"><span style="font-size:28px">📊</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Usage</span></button>
+<button class="more-btn" onclick="openTab('notes');closeMore()"><span style="font-size:28px">📝</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Notes</span></button>
+</div>
+</div>
+
 <!-- ===== NAV ===== -->
 <nav>
 <button class="active" onclick="openTab('dashboard')"><span class="icon">🏠</span>Home</button>
 <button onclick="openTab('tasks')"><span class="icon">✅</span>Tasks</button>
-<button onclick="openTab('customers')"><span class="icon">👥</span>Clients</button>
 <button onclick="openTab('finance')"><span class="icon">💰</span>Finance</button>
-<button onclick="openTab('leads')"><span class="icon">🎯</span>Leads</button>
 <button onclick="openTab('quote')"><span class="icon">📋</span>Quote</button>
-<button onclick="openTab('usage')"><span class="icon">📊</span>Usage</button>
-<button onclick="openTab('notes')"><span class="icon">📝</span>Notes</button>
+<button onclick="toggleMore()"><span class="icon">⋯</span>More</button>
 </nav>
 
 <script src="qb-data.js"></script>
@@ -344,9 +355,13 @@ function openTab(name) {
   document.querySelectorAll('.tab-content').forEach(t => t.classList.remove('active'));
   document.querySelectorAll('nav button').forEach(b => b.classList.remove('active'));
   document.getElementById('tab-'+name).classList.add('active');
-  const tabs = ['dashboard','tasks','customers','finance','leads','quote','usage','notes'];
-  const idx = tabs.indexOf(name);
+  const navTabs = ['dashboard','tasks','finance','quote'];
+  const idx = navTabs.indexOf(name);
   if(idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
+  // If it's a "more" tab, highlight the More button
+  if(['customers','leads','usage','notes'].includes(name)) {
+    document.querySelectorAll('nav button')[4].classList.add('active');
+  }
   if(name==='dashboard') renderDashboard();
   if(name==='tasks') renderTasks();
   if(name==='customers') renderCustomers();
@@ -355,6 +370,23 @@ function openTab(name) {
   if(name==='quote') renderQuoteTab();
   if(name==='usage') renderUsage();
   if(name==='notes') renderNotes();
+}
+function toggleMore() {
+  const drawer = document.getElementById('more-drawer');
+  const overlay = document.getElementById('more-overlay');
+  const open = drawer.style.display === 'none';
+  drawer.style.display = open ? 'block' : 'none';
+  overlay.style.display = open ? 'block' : 'none';
+  if(open) requestAnimationFrame(() => { drawer.style.transform = 'translateY(0)'; });
+  else drawer.style.transform = 'translateY(100%)';
+}
+function closeMore() {
+  const drawer = document.getElementById('more-drawer');
+  drawer.style.transform = 'translateY(100%)';
+  setTimeout(() => {
+    drawer.style.display = 'none';
+    document.getElementById('more-overlay').style.display = 'none';
+  }, 250);
 }
 function closeModal(id) { document.getElementById(id).classList.remove('show') }
 function showModal(id) { document.getElementById(id).classList.add('show') }
