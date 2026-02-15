@@ -1404,8 +1404,44 @@ function renderNotes() {
   </div>`).join('');
 }
 
+// === DEMO TASKS ===
+function seedDemoTasks() {
+  if(localStorage.getItem('forge_demo_tasks_v1')) return;
+  const now = new Date().toISOString();
+  const mk = (title, owner, category, status, priority) => ({
+    id: store.id(), title, owner, category, status, priority: priority||'medium',
+    due: '', createdAt: now, updatedAt: now, completedAt: status==='done' ? now : null
+  });
+  const seed = [
+    mk('Set up AI agent on VPS','zephyr','infra','done','high'),
+    mk('Connect QuickBooks API','zephyr','business','done','high'),
+    mk('Build morning report automation','zephyr','infra','done','high'),
+    mk('Create CRM + lead tracker scripts','zephyr','business','done','medium'),
+    mk('Build invoice generator','zephyr','business','done','medium'),
+    mk('Set up uptime monitoring','zephyr','infra','done','medium'),
+    mk('Competitive pricing scraper','zephyr','business','done','medium'),
+    mk('Voice interface (STT + TTS)','zephyr','infra','done','medium'),
+    mk('Financial analysis dashboard','zephyr','business','done','medium'),
+    mk('Build Forge PWA','zephyr','infra','done','high'),
+    mk('Deploy to GitHub Pages','zephyr','infra','done','medium'),
+    mk('Add weekly revenue charts','zephyr','business','in-progress','medium'),
+    mk('Integrate Google Reviews','zephyr','business','in-progress','medium'),
+    mk('Build email campaign system','zephyr','marketing','todo','medium'),
+    mk('Add customer portal','zephyr','business','todo','low'),
+    mk('Record demo video for content','owner','marketing','todo','high'),
+    mk('Post launch thread on X','owner','marketing','todo','high'),
+    mk('File 2025 taxes','owner','tax','todo','urgent'),
+    mk('Set up Google Ads campaign','owner','marketing','todo','medium'),
+    mk('Get more customer reviews','owner','business','todo','medium'),
+  ];
+  store.set('tasks', seed);
+  localStorage.setItem('forge_demo_tasks_v1','1');
+}
+
 // === SEED TASKS (one-time) ===
 function seedTasks() {
+  // Demo mode: always use demo tasks, keyed separately
+  if(IS_DEMO) { seedDemoTasks(); return; }
   if(localStorage.getItem('forge_tasks_seeded_v2')) return;
   const tasks = store.get('tasks');
   if(tasks.length > 0) { localStorage.setItem('forge_tasks_seeded_v2','1'); return; }
