@@ -71,6 +71,27 @@ nav button.active{color:var(--accent)}
 nav button .icon{font-size:22px}
 .more-btn{background:none;border:1px solid var(--border);border-radius:12px;padding:14px 8px;display:flex;flex-direction:column;align-items:center;cursor:pointer;font-family:inherit;transition:background .2s}
 .more-btn:active{background:var(--border)}
+.kanban{display:flex;gap:12px;overflow-x:auto;-webkit-overflow-scrolling:touch;scroll-snap-type:x mandatory;padding-bottom:8px}
+.kanban::-webkit-scrollbar{height:4px}
+.kanban::-webkit-scrollbar-thumb{background:var(--border);border-radius:2px}
+.kanban-col{min-width:85%;scroll-snap-align:start;flex-shrink:0}
+.kanban-col-header{display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;font-weight:600;text-transform:uppercase;letter-spacing:.5px}
+.kanban-col-header .dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.kanban-col-header .count{color:var(--muted);font-weight:400}
+.kanban-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:8px;cursor:pointer;transition:border-color .2s}
+.kanban-card:active{border-color:var(--accent)}
+.kanban-card .kc-title{font-size:14px;font-weight:600;margin-bottom:4px}
+.kanban-card .kc-meta{font-size:11px;color:var(--muted);display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.kanban-card .kc-badge{font-size:10px;padding:2px 6px;border-radius:4px;font-weight:600}
+.activity-feed .af-item{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--border)}
+.activity-feed .af-item:last-child{border-bottom:none}
+.activity-feed .af-dot{width:8px;height:8px;border-radius:50%;background:var(--green);margin-top:5px;flex-shrink:0}
+.activity-feed .af-text{font-size:13px;flex:1}
+.activity-feed .af-time{font-size:11px;color:var(--muted);white-space:nowrap}
+.schedule-item{display:flex;justify-content:space-between;align-items:center;padding:10px 12px;background:var(--card);border:1px solid var(--border);border-radius:8px;margin-bottom:6px}
+.schedule-item .si-name{font-size:13px;font-weight:600}
+.schedule-item .si-time{font-size:12px;color:var(--muted)}
+.schedule-item .si-badge{font-size:10px;padding:2px 8px;border-radius:10px;font-weight:600}
 .empty{text-align:center;padding:40px 20px;color:var(--muted)}
 .tel{color:var(--warm);text-decoration:none}
 .money-green{color:var(--green)}
@@ -92,15 +113,22 @@ nav button .icon{font-size:22px}
 <div id="tab-dashboard" class="tab-content active">
 <div class="container">
 <h1>⚒️ Forge</h1>
-<div class="stat-grid">
-<div class="stat"><div class="num" id="d-tasks">0</div><div class="lbl">Active Tasks</div></div>
-<div class="stat"><div class="num" id="d-leads">0</div><div class="lbl">Customers</div></div>
-<div class="stat"><div class="num" id="d-streak">0</div><div class="lbl">Day Streak</div></div>
+<div class="stat-grid" style="grid-template-columns:repeat(4,1fr)">
+<div class="stat"><div class="num" id="d-tasks">0</div><div class="lbl">Active</div></div>
+<div class="stat"><div class="num" id="d-done">0</div><div class="lbl">Done</div></div>
+<div class="stat"><div class="num" id="d-leads">0</div><div class="lbl">Clients</div></div>
+<div class="stat"><div class="num" style="color:var(--green)" id="d-pct">0%</div><div class="lbl">Complete</div></div>
 </div>
 <div class="stat-grid" style="grid-template-columns:1fr 1fr">
 <div class="stat"><div class="num money-green" id="d-revenue">$0</div><div class="lbl">Revenue (2025)</div></div>
 <div class="stat"><div class="num money-red" id="d-net">$0</div><div class="lbl">Net Income</div></div>
 </div>
+
+<h2>🌪️ Zephyr Activity</h2>
+<div id="d-activity" class="activity-feed"></div>
+
+<h2>📅 Scheduled Automations</h2>
+<div id="d-schedule"></div>
 
 <h2>Recent Invoices</h2>
 <div id="d-invoices"></div>
@@ -118,11 +146,11 @@ nav button .icon{font-size:22px}
 <div id="tab-tasks" class="tab-content">
 <div class="container">
 <h1>✅ Tasks</h1>
-<input type="text" class="search" placeholder="Search tasks..." id="task-search" oninput="renderTasks()">
+<div id="task-stats" style="display:flex;gap:16px;margin-bottom:12px;font-size:13px;color:var(--muted)"></div>
 <div class="filter-row">
-<select id="task-filter-status" onchange="renderTasks()"><option value="all">All Status</option><option value="todo">To Do</option><option value="in-progress">In Progress</option><option value="done">Done</option></select>
-<select id="task-filter-owner" onchange="renderTasks()"><option value="all">All Owners</option><option value="peyton">👤 Peyton</option><option value="zephyr">🌪️ Zephyr</option></select>
+<select id="task-filter-owner" onchange="renderTasks()"><option value="all">All</option><option value="peyton">👤 Peyton</option><option value="zephyr">🌪️ Zephyr</option></select>
 <select id="task-filter-priority" onchange="renderTasks()"><option value="all">All Priority</option><option value="urgent">Urgent</option><option value="high">High</option><option value="medium">Medium</option><option value="low">Low</option></select>
+<select id="task-view-mode" onchange="renderTasks()"><option value="kanban">Kanban</option><option value="list">List</option></select>
 <button class="btn btn-sm" onclick="openTaskModal()">+ Add</button>
 </div>
 <div id="task-list"></div>
@@ -662,9 +690,12 @@ function renderQuoteTab() {
 function renderDashboard() {
   const tasks = store.get('tasks');
   const active = tasks.filter(t => t.status !== 'done').length;
+  const done = tasks.filter(t => t.status === 'done').length;
+  const pct = tasks.length ? Math.round(done/tasks.length*100) : 0;
   document.getElementById('d-tasks').textContent = active;
+  document.getElementById('d-done').textContent = done;
   document.getElementById('d-leads').textContent = (QB.customers||[]).length;
-  document.getElementById('d-streak').textContent = calcStreak();
+  document.getElementById('d-pct').textContent = pct + '%';
 
   // QB financials
   const pnl = QB.pnl2025 || {};
@@ -673,6 +704,36 @@ function renderDashboard() {
   const netEl = document.getElementById('d-net');
   netEl.textContent = (net < 0 ? '-' : '') + fmt(net);
   netEl.className = 'num ' + (net >= 0 ? 'money-green' : 'money-red');
+
+  // Activity feed - show recently completed tasks by Zephyr
+  const actEl = document.getElementById('d-activity');
+  const zephyrDone = tasks.filter(t => (t.owner||'') === 'zephyr' && t.status === 'done' && t.completedAt)
+    .sort((a,b) => (b.completedAt||'').localeCompare(a.completedAt||'')).slice(0, 8);
+  const zephyrActive = tasks.filter(t => (t.owner||'') === 'zephyr' && t.status === 'in-progress')
+    .sort((a,b) => (b.updatedAt||'').localeCompare(a.updatedAt||''));
+  let actHtml = '';
+  zephyrActive.forEach(t => {
+    actHtml += `<div class="af-item"><span class="af-dot" style="background:#3b82f6"></span><div class="af-text"><strong>In progress:</strong> ${esc(t.title)}</div><div class="af-time">${catLabel(t.category)}</div></div>`;
+  });
+  zephyrDone.forEach(t => {
+    actHtml += `<div class="af-item"><span class="af-dot"></span><div class="af-text">${esc(t.title)}</div><div class="af-time">✅ done</div></div>`;
+  });
+  actEl.innerHTML = actHtml || '<div style="color:var(--muted);font-size:13px">No activity yet</div>';
+
+  // Scheduled automations
+  const schedEl = document.getElementById('d-schedule');
+  const schedules = [
+    {name:'Morning Report',time:'8:00 AM',freq:'Daily',color:'var(--yellow)'},
+    {name:'QB Data Sync',time:'7:00 AM',freq:'Daily',color:'var(--green)'},
+    {name:'Usage Tracker',time:'Every 4h',freq:'Recurring',color:'#3b82f6'},
+    {name:'Daily Digest',time:'6:00 PM',freq:'Daily',color:'var(--accent)'},
+    {name:'Uptime Monitor',time:'Every 5m',freq:'Always',color:'var(--green)'},
+    {name:'Weekly Review',time:'Sun 9 AM',freq:'Weekly',color:'#8b5cf6'},
+  ];
+  schedEl.innerHTML = schedules.map(s => `<div class="schedule-item">
+    <div><div class="si-name">${s.name}</div><div class="si-time">${s.time}</div></div>
+    <span class="si-badge" style="background:${s.color}22;color:${s.color}">${s.freq}</span>
+  </div>`).join('');
 
   // Recent invoices
   const invEl = document.getElementById('d-invoices');
@@ -686,6 +747,7 @@ function renderDashboard() {
     </div>
   </div>`).join('');
 }
+function catLabel(c) { return (c||'').replace(/-/g,' '); }
 
 function calcStreak() {
   const tasks = store.get('tasks').filter(t => t.status === 'done' && t.completedAt);
@@ -1095,29 +1157,54 @@ function cycleTaskStatus(id) {
 }
 function renderTasks() {
   let tasks = store.get('tasks');
-  const search = (document.getElementById('task-search')?.value||'').toLowerCase();
-  const fStatus = document.getElementById('task-filter-status')?.value||'all';
   const fOwner = document.getElementById('task-filter-owner')?.value||'all';
   const fPri = document.getElementById('task-filter-priority')?.value||'all';
-  if(search) tasks = tasks.filter(t => t.title.toLowerCase().includes(search));
-  if(fStatus!=='all') tasks = tasks.filter(t => t.status===fStatus);
+  const viewMode = document.getElementById('task-view-mode')?.value||'kanban';
   if(fOwner!=='all') tasks = tasks.filter(t => (t.owner||'peyton')===fOwner);
   if(fPri!=='all') tasks = tasks.filter(t => t.priority===fPri);
-  // Sort: active first (todo, in-progress), then done. Within each group: priority then recency
-  tasks.sort((a,b) => {
-    const so = {todo:0,'in-progress':1,done:2};
-    if(so[a.status] !== so[b.status]) return so[a.status] - so[b.status];
-    const po = {urgent:0,high:1,medium:2,low:3};
-    return po[a.priority] !== po[b.priority] ? po[a.priority]-po[b.priority] : (b.updatedAt||'').localeCompare(a.updatedAt||'');
-  });
+  // Stats bar
+  const allTasks = store.get('tasks');
+  const todo = allTasks.filter(t=>t.status==='todo').length;
+  const inProg = allTasks.filter(t=>t.status==='in-progress').length;
+  const done = allTasks.filter(t=>t.status==='done').length;
+  const total = allTasks.length;
+  const pct = total ? Math.round(done/total*100) : 0;
+  document.getElementById('task-stats').innerHTML = `<span><strong>${todo+inProg}</strong> active</span><span><strong>${inProg}</strong> in progress</span><span><strong>${total}</strong> total</span><span style="color:var(--green)"><strong>${pct}%</strong> done</span>`;
   const el = document.getElementById('task-list');
-  if(!tasks.length) { el.innerHTML = '<div class="empty">No tasks found</div>'; return; }
   const ownerIcon = o => o === 'zephyr' ? '🌪️' : '👤';
-  el.innerHTML = tasks.map(t => `<div class="list-item ${t.status==='done'?'task-done':''}" onclick="cycleTaskStatus('${t.id}')" style="${t.status==='done'?'opacity:.6':''}">
-    <div class="actions"><button onclick="event.stopPropagation();openTaskModal('${t.id}')">✏️</button><button onclick="event.stopPropagation();deleteTask('${t.id}')">🗑️</button></div>
-    <div class="title">${t.status==='done'?'<s>':''}${ownerIcon(t.owner||'peyton')} ${esc(t.title)}${t.status==='done'?'</s>':''}</div>
-    <div class="meta"><span class="badge badge-${t.status}">${t.status}</span> <span class="badge badge-${t.priority}">${t.priority}</span> ${t.category||''} ${t.due ? '· Due '+t.due : ''}</div>
-  </div>`).join('');
+  const priColor = p => ({urgent:'var(--red)',high:'var(--yellow)',medium:'var(--accent)',low:'var(--muted)'}[p]||'var(--muted)');
+  const catLabel = c => (c||'').replace(/-/g,' ');
+  // Sort by priority within each group
+  tasks.sort((a,b) => { const po = {urgent:0,high:1,medium:2,low:3}; return po[a.priority] !== po[b.priority] ? po[a.priority]-po[b.priority] : (b.updatedAt||'').localeCompare(a.updatedAt||''); });
+  if(viewMode === 'kanban') {
+    const cols = [
+      {key:'todo',label:'To Do',color:'var(--yellow)',items:tasks.filter(t=>t.status==='todo')},
+      {key:'in-progress',label:'In Progress',color:'#3b82f6',items:tasks.filter(t=>t.status==='in-progress')},
+      {key:'done',label:'Done',color:'var(--green)',items:tasks.filter(t=>t.status==='done')}
+    ];
+    el.innerHTML = '<div class="kanban">' + cols.map(c => `<div class="kanban-col">
+      <div class="kanban-col-header"><span class="dot" style="background:${c.color}"></span>${c.label} <span class="count">${c.items.length}</span></div>
+      ${c.items.length ? c.items.map(t => `<div class="kanban-card" onclick="cycleTaskStatus('${t.id}')">
+        <div style="display:flex;justify-content:space-between;align-items:start">
+          <div class="kc-title">${ownerIcon(t.owner||'peyton')} ${esc(t.title)}</div>
+          <button style="background:none;border:none;font-size:14px;cursor:pointer;padding:0 0 0 4px" onclick="event.stopPropagation();openTaskModal('${t.id}')">✏️</button>
+        </div>
+        <div class="kc-meta">
+          <span class="kc-badge" style="background:${priColor(t.priority)}22;color:${priColor(t.priority)}">${t.priority}</span>
+          <span>${catLabel(t.category)}</span>
+          ${t.due ? '<span>📅 '+t.due+'</span>' : ''}
+        </div>
+      </div>`).join('') : '<div style="color:var(--muted);font-size:12px;text-align:center;padding:20px">No tasks</div>'}
+    </div>`).join('') + '</div>';
+  } else {
+    // List view
+    if(!tasks.length) { el.innerHTML = '<div class="empty">No tasks found</div>'; return; }
+    el.innerHTML = tasks.map(t => `<div class="list-item ${t.status==='done'?'task-done':''}" onclick="cycleTaskStatus('${t.id}')" style="${t.status==='done'?'opacity:.6':''}">
+      <div class="actions"><button onclick="event.stopPropagation();openTaskModal('${t.id}')">✏️</button><button onclick="event.stopPropagation();deleteTask('${t.id}')">🗑️</button></div>
+      <div class="title">${t.status==='done'?'<s>':''}${ownerIcon(t.owner||'peyton')} ${esc(t.title)}${t.status==='done'?'</s>':''}</div>
+      <div class="meta"><span class="badge badge-${t.status}">${t.status}</span> <span class="badge badge-${t.priority}">${t.priority}</span> ${catLabel(t.category)} ${t.due ? '· Due '+t.due : ''}</div>
+    </div>`).join('');
+  }
 }
 
 // === LEADS ===
