@@ -10,7 +10,7 @@
 <title>Forge</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#1a1a2e;--card:#16213e;--text:#e8e8e8;--muted:#8899aa;--accent:#a53a2a;--warm:#d4a373;--green:#2ecc71;--red:#e74c3c;--yellow:#f39c12;--border:#2a3a5e;--radius:12px}
+:root{--bg:#0a0a0a;--card:#161616;--text:#e8e8e8;--muted:#777;--accent:#c41e1e;--warm:#ff6b35;--green:#2ecc71;--red:#e74c3c;--yellow:#f39c12;--border:#2a2a2a;--radius:12px}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:100px;-webkit-tap-highlight-color:transparent}
 .container{max-width:600px;margin:0 auto;padding:12px}
 h1{font-size:22px;margin-bottom:12px;display:flex;align-items:center;gap:8px}
@@ -263,6 +263,14 @@ nav button .icon{font-size:22px}
 </div>
 </div>
 
+<!-- ===== CONTENT ===== -->
+<div id="tab-content" class="tab-content">
+<div class="container">
+<h1>📣 Content Hub</h1>
+<div id="content-hub"></div>
+</div>
+</div>
+
 <!-- ===== USAGE ===== -->
 <div id="tab-usage" class="tab-content">
 <div class="container">
@@ -351,7 +359,10 @@ nav button .icon{font-size:22px}
 <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px">
 <button class="more-btn" onclick="openTab('customers');closeMore()"><span style="font-size:28px">👥</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Clients</span></button>
 <button class="more-btn" onclick="openTab('leads');closeMore()"><span style="font-size:28px">🎯</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Leads</span></button>
+<button class="more-btn" onclick="openTab('content');closeMore()"><span style="font-size:28px">📣</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Content</span></button>
 <button class="more-btn" onclick="openTab('usage');closeMore()"><span style="font-size:28px">📊</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Usage</span></button>
+</div>
+<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-top:12px">
 <button class="more-btn" onclick="openTab('notes');closeMore()"><span style="font-size:28px">📝</span><span style="font-size:12px;color:var(--muted);margin-top:4px">Notes</span></button>
 </div>
 </div>
@@ -387,7 +398,7 @@ function openTab(name) {
   const idx = navTabs.indexOf(name);
   if(idx >= 0) document.querySelectorAll('nav button')[idx].classList.add('active');
   // If it's a "more" tab, highlight the More button
-  if(['customers','leads','usage','notes'].includes(name)) {
+  if(['customers','leads','content','usage','notes'].includes(name)) {
     document.querySelectorAll('nav button')[4].classList.add('active');
   }
   if(name==='dashboard') renderDashboard();
@@ -396,6 +407,7 @@ function openTab(name) {
   if(name==='finance') renderFinance();
   if(name==='leads') renderLeads();
   if(name==='quote') renderQuoteTab();
+  if(name==='content') renderContent();
   if(name==='usage') renderUsage();
   if(name==='notes') renderNotes();
 }
@@ -585,6 +597,99 @@ function renderQuoteRecent() {
       </div>` : ''}
     </div>`;
   }).join('');
+}
+
+// === CONTENT HUB ===
+function renderContent() {
+  const el = document.getElementById('content-hub');
+  const posts = [
+    {
+      platform: '𝕏 Twitter/X',
+      icon: '🐦',
+      color: '#1da1f2',
+      type: 'Launch Thread',
+      text: `I built an AI employee that works 24/7 for $239/month.\n\nIt runs my garage door business, tracks my finances, monitors competitors, and sends me a morning report every day at 8 AM.\n\nHere's exactly how I did it 🧵👇`,
+      thread: [
+        `The problem: I'm a college student running a garage door repair business. Between classes, jobs, and actually doing repairs — I had zero time for the business side.\n\nMarketing, invoicing, lead tracking, competitor research... it all fell through the cracks.`,
+        `The solution: I set up an AI agent called Zephyr using @OpenClaw.\n\nIt runs on a $0 cloud server and uses Claude as its brain. I text it from my phone and it handles everything.\n\nNo code. No apps to learn. Just text messages.`,
+        `What it built for me in 10 DAYS:\n\n✅ Full business command center (Forge)\n✅ 11 business automation scripts\n✅ QuickBooks auto-sync\n✅ Customer CRM\n✅ Invoice generator\n✅ Competitive price tracker\n✅ Daily opportunity scanner\n✅ Tax prep (estimated my refund)\n\nAll from text messages.`,
+        `The daily routine (fully automated):\n\n7 AM — Syncs QuickBooks\n8 AM — Morning report to my phone\nAll day — Monitors website uptime\n6 PM — Daily opportunity digest\nSunday — Weekly business review\n\nI wake up to a briefing. I didn't set an alarm for it.`,
+        `Total cost breakdown:\n\n• Claude Max: $200/mo (the AI brain)\n• ChatGPT: $20/mo (coding tasks)\n• Kimi: $19/mo (background work)\n• Server: $0 (free tier)\n\n= $239/month for a 24/7 employee\n\nThat's $0.33/hour. Try hiring a human for that.`,
+        `The craziest part?\n\nIt did my taxes.\n\nPulled my W-2 data, calculated Schedule C from QuickBooks, estimated my deductions, and told me I'm getting ~$500 back.\n\nI just have to walk through TurboTax. The numbers are ready.`,
+        `I'm documenting everything — the setup, the tools, what works, what doesn't.\n\nFollow @The_Paske_Project for the full journey.\n\nIf you're a solo operator drowning in busywork, this changes everything. 🌪️`
+      ]
+    },
+    {
+      platform: '📸 Instagram',
+      icon: '📸',
+      color: '#e1306c',
+      type: 'Carousel Caption',
+      text: `I built an AI employee for $239/month. It runs 24/7, never calls in sick, and already built me 11 business tools in 10 days.\n\nSwipe to see what it does every single day 👉\n\nThis isn't ChatGPT in a browser. This is a full AI agent on a cloud server that I text from my phone. It handles my business while I handle everything else.\n\n🔧 Garage door business? Automated.\n📊 QuickBooks? Auto-synced.\n🧾 Taxes? Calculated.\n📱 Reports? Delivered to my phone every morning.\n\nThe future isn't about working harder. It's about building systems that work for you.\n\nMore coming soon. Follow the journey.\n\n#AIAgent #Entrepreneur #GarageDoorBusiness #BuildInPublic #SoloPreneur #ThePaskeProject #OpenClaw`
+    },
+    {
+      platform: '🎵 TikTok',
+      icon: '🎵',
+      color: '#ff0050',
+      type: 'Video Script (60s)',
+      text: `[Hook — 0-3s]\n"I pay $239 a month for an employee that never sleeps."\n\n[Show phone — 3-8s]\n"Every morning at 8 AM, it texts me a full business report. Finances, opportunities, tasks — all done before I wake up."\n\n[Show Forge app — 8-15s]\n"It built this entire app for my business. Clients, invoices, quotes, everything. In 10 days. I didn't write a single line of code."\n\n[Show QuickBooks sync — 15-20s]\n"It syncs my QuickBooks automatically, tracks my competitors' prices, and even did my taxes."\n\n[Face to camera — 20-30s]\n"I'm a college student running a garage door business. I don't have time to do all this manually. So I built an AI agent that does it for me, 24 hours a day, 7 days a week."\n\n[CTA — 30-35s]\n"Follow @The_Paske_Project — I'm documenting everything."`
+    },
+    {
+      platform: '🎬 YouTube',
+      icon: '🎬',
+      color: '#ff0000',
+      type: 'Video Description',
+      text: `How I Built a 24/7 AI Employee for $239/Month (Full Breakdown)\n\nIn this video, I show you exactly how I set up an AI agent called Zephyr that runs my garage door business around the clock.\n\nWhat it does:\n• Sends me a morning report every day at 8 AM\n• Syncs my QuickBooks automatically\n• Built me a full business command center app\n• Tracks competitor pricing\n• Generates professional quotes\n• Even prepared my tax numbers\n\nTools used:\n• OpenClaw (agent framework)\n• Claude AI (the brain — $200/mo)\n• ChatGPT Codex (coding — $20/mo)\n• Kimi K2.5 (background tasks — $19/mo)\n\nTotal: $239/month for a 24/7 digital employee.\n\nI'm documenting the entire journey. Subscribe and follow @The_Paske_Project on all platforms.\n\n#AIAgent #Entrepreneur #OpenClaw #BuildInPublic`
+    },
+    {
+      platform: '🔴 Reddit',
+      icon: '🔴',
+      color: '#ff4500',
+      type: 'r/SideProject Post',
+      text: `Title: I built a 24/7 AI agent that runs my small business for $239/month\n\nHey r/SideProject,\n\nI'm a college student running a garage door repair business (Red Clay Garage Services). Between school and actual jobs, I had no time for the business admin — invoicing, lead tracking, competitor research, etc.\n\nSo I built an AI agent using OpenClaw. Here's what it does:\n\n- Sends me a morning business report at 8 AM daily\n- Auto-syncs my QuickBooks\n- Built me a custom PWA with client management, kanban tasks, quote generator, financial dashboard\n- Monitors my website uptime\n- Scans HN/Reddit/Product Hunt for opportunities daily\n- Prepared all my tax numbers (Schedule C + W-2)\n\nTotal cost: $239/mo (Claude $200 + ChatGPT $20 + Kimi $19)\n\nThe app it built: [Forge](https://silverphantoom.github.io/forge/)\n\nHappy to answer questions about the setup. Thinking about documenting the full process as a course for other solo operators.\n\nWhat do you think?`
+    }
+  ];
+
+  let html = '';
+  posts.forEach((p, i) => {
+    html += `<div class="card" style="margin-bottom:16px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <div><span style="font-size:18px">${p.icon}</span> <strong>${p.platform}</strong></div>
+        <span style="font-size:11px;padding:3px 10px;border-radius:10px;background:${p.color}22;color:${p.color};font-weight:600">${p.type}</span>
+      </div>
+      <div style="white-space:pre-wrap;font-size:13px;line-height:1.5;color:var(--text);max-height:${p.thread?'120':'200'}px;overflow:hidden" id="content-text-${i}">${esc(p.text)}</div>
+      ${p.thread ? `<div id="content-thread-${i}" style="display:none;margin-top:12px;border-top:1px solid var(--border);padding-top:12px">
+        ${p.thread.map((t,j) => `<div style="padding:8px 0;border-bottom:1px solid var(--border);font-size:13px;line-height:1.5"><span style="color:var(--accent);font-weight:700">${j+2}/${p.thread.length+1}</span> ${esc(t)}</div>`).join('')}
+      </div>` : ''}
+      <div class="btn-row" style="margin-top:10px">
+        <button class="btn btn-sm" onclick="copyContent(${i})">📋 Copy</button>
+        ${p.thread ? `<button class="btn btn-sm btn-outline" onclick="toggleThread(${i})">🧵 Thread (${p.thread.length+1})</button>` : ''}
+      </div>
+    </div>`;
+  });
+
+  el.innerHTML = html;
+}
+
+function copyContent(i) {
+  const el = document.getElementById('content-text-'+i);
+  const thread = document.getElementById('content-thread-'+i);
+  let text = el.textContent;
+  if(thread) {
+    const parts = thread.querySelectorAll('div[style]');
+    parts.forEach(p => { text += '\n\n---\n\n' + p.textContent.trim(); });
+  }
+  if(navigator.clipboard) navigator.clipboard.writeText(text);
+  else {
+    const ta = document.createElement('textarea'); ta.value = text;
+    document.body.appendChild(ta); ta.select(); document.execCommand('copy');
+    document.body.removeChild(ta);
+  }
+  alert('Copied to clipboard!');
+}
+
+function toggleThread(i) {
+  const el = document.getElementById('content-thread-'+i);
+  el.style.display = el.style.display === 'none' ? 'block' : 'none';
 }
 
 // === USAGE TAB ===
