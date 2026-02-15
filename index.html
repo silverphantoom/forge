@@ -376,8 +376,15 @@ nav button .icon{font-size:22px}
 <button onclick="toggleMore()"><span class="icon">⋯</span>More</button>
 </nav>
 
-<script src="qb-data.js"></script>
-<script src="usage-data.js"></script>
+<script>
+// Demo mode detection — load demo data if ?demo in URL
+if (window.location.search.includes('demo')) {
+  document.write('<scr'+'ipt src="demo-data.js"></scr'+'ipt>');
+} else {
+  document.write('<scr'+'ipt src="qb-data.js"></scr'+'ipt>');
+  document.write('<scr'+'ipt src="usage-data.js"></scr'+'ipt>');
+}
+</script>
 <script>
 // === DATA LAYER ===
 const store = {
@@ -386,8 +393,18 @@ const store = {
   id() { return Date.now().toString(36) + Math.random().toString(36).slice(2,6) }
 };
 
-// QB data from qb-data.js
+// QB data from qb-data.js or demo-data.js
 const QB = window.QB_DATA || {};
+const IS_DEMO = window.DEMO_MODE || false;
+
+// Show demo banner
+if (IS_DEMO) {
+  const banner = document.createElement('div');
+  banner.style.cssText = 'background:#c44a2a;color:#fff;text-align:center;padding:8px;font-size:13px;font-weight:600;position:fixed;top:0;left:0;right:0;z-index:9999;';
+  banner.innerHTML = '🔥 DEMO MODE — Sample data shown. <a href="https://x.com/paske_project" style="color:#fff;text-decoration:underline">Follow @paske_project</a>';
+  document.body.prepend(banner);
+  document.body.style.paddingTop = '36px';
+}
 
 // === TAB NAVIGATION ===
 function openTab(name) {
