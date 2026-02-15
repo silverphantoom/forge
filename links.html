@@ -33,13 +33,15 @@
     width: 96px;
     height: 96px;
     border-radius: 50%;
-    background: linear-gradient(135deg, #c44a2a, #8b2510);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 44px;
     margin: 0 auto 16px;
     border: 3px solid rgba(255,255,255,0.1);
+    overflow: hidden;
+  }
+
+  .avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
   }
 
   .name {
@@ -151,7 +153,7 @@
 <body>
 
 <div class="profile">
-  <div class="avatar">🔨</div>
+  <div class="avatar"><img src="pp-logo.png" alt="PP"></div>
   <div class="name">Peyton Paske</div>
   <div class="bio">Entrepreneur • Garage Door Repair • AI Builder<br>Auburn, AL 🌪️</div>
 </div>
