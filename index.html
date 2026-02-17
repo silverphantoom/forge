@@ -581,6 +581,29 @@ document.querySelectorAll('.sheet .list-item[data-tab]').forEach(btn => {
   });
 });
 </script>
+<script src="canvas-data.js"></script>
+<script src="components/canvas-widget.js"></script>
 <script src="forge.js"></script>
+<script>
+// Render Canvas widget in dashboard
+(function() {
+  const canvasContainer = document.createElement('div');
+  canvasContainer.id = 'canvas-widget-container';
+  canvasContainer.style.cssText = 'margin-bottom: var(--sp-4);';
+  
+  // Find dashboard tab and insert after stats
+  const dashboard = document.getElementById('tab-dashboard');
+  if (dashboard && window.CanvasWidget && window.CANVAS_DATA) {
+    const widget = window.CanvasWidget.create();
+    canvasContainer.appendChild(widget);
+    const stats = dashboard.querySelector('.stats-grid');
+    if (stats && stats.nextElementSibling) {
+      stats.parentNode.insertBefore(canvasContainer, stats.nextElementSibling);
+    } else if (dashboard.firstChild) {
+      dashboard.insertBefore(canvasContainer, dashboard.firstChild.nextSibling);
+    }
+  }
+})();
+</script>
 </body>
 </html>
