@@ -1,0 +1,97 @@
+# CODE FACTORY POLICY — Single Source of Truth
+# All automation obeys this file. No exceptions.
+# Updated: 2026-02-17
+
+version: 1
+
+# Risk tiers by path pattern
+risk_tiers:
+  critical:
+    paths:
+      - "data/*credentials*"
+      - "data/*tokens*"
+      - "scripts/*sync*"
+      - "scripts/*invoice*"
+      - ".code-factory/POLICY.yml"
+    required_checks:
+      - lint
+      - test
+      - security_scan
+      - human_approval
+    docs_drift: block  # PR blocked if docs not updated
+
+  high:
+    paths:
+      - "scripts/*.sh"
+      - "src/**/*.ts"
+      - "src/**/*.tsx"
+      - "skills/*/SKILL.md"
+      - "AGENTS.md"
+      - "MEMORY.md"
+    required_checks:
+      - lint
+      - test
+      - agent_review
+    docs_drift: warn
+
+  standard:
+    paths:
+      - "**/*"
+    required_checks:
+      - lint
+      - agent_review
+    docs_drift: ignore
+
+# Preflight gate order (NEVER reorder)
+preflight_order:
+  1: risk_classification    # Which tier does this PR touch?
+  2: policy_gate            # Are required checks defined?
+  3: review_state_check     # Is there a current-head review?
+  4: tests_and_builds       # Only now run expensive CI
+
+# SHA discipline
+sha_rules:
+  require_current_head: true
+  stale_review_action: ignore
+  rerun_on_push: true
+  clear_failures_only_by_rerun: true
+
+# Rerun authority
+rerun:
+  single_requester: "code-factory-bot"
+  dedupe_marker: "sha:"
+  ignore_duplicates: true
+
+# Remediation agent
+remediation:
+  enabled: true
+  model: "gpt-5.3-codex"
+  max_attempts: 2
+  constraints:
+    - never_bypass_policy_gates
+    - ignore_stale_comments
+    - pin_model_and_effort
+    - push_to_same_branch
+
+# Auto-resolution
+auto_resolve:
+  bot_only_threads: true
+  after_clean_rerun: true
+  never_touch_human_threads: true
+
+# Evidence requirements
+evidence:
+  ui_changes:
+    require_executable_proof: true
+    verify:
+      - flow_exists
+      - correct_entrypoint
+      - fresh_artifacts
+  critical_flows:
+    require_test_harness: true
+
+# Incident → Harness loop
+incident_loop:
+  pattern: "regression → harness gap → test added → SLA tracked"
+  harness_dir: ".code-factory/harnesses/"
+  sla_file: ".code-factory/incident-sla.md"

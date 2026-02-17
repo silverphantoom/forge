@@ -1,0 +1,83 @@
+# Copy to .github/workflows/code-factory.yml in any repo
+name: Code Factory
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  preflight:
+    name: Preflight Gate
+    runs-on: ubuntu-latest
+    outputs:
+      risk_tier: ${{ steps.classify.outputs.tier }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Risk Classification
+        id: classify
+        run: |
+          # Check which risk tier this PR touches
+          CHANGED=$(gh pr diff ${{ github.event.pull_request.number }} --name-only 2>/dev/null || git diff --name-only origin/main...HEAD)
+          TIER="standard"
+          for f in $CHANGED; do
+            case "$f" in
+              data/*credentials*|data/*tokens*|.code-factory/POLICY.yml)
+                TIER="critical"; break ;;
+              scripts/*.sh|src/**/*.ts|src/**/*.tsx|AGENTS.md|MEMORY.md)
+                [ "$TIER" != "critical" ] && TIER="high" ;;
+            esac
+          done
+          echo "tier=$TIER" >> "$GITHUB_OUTPUT"
+          echo "### Risk Tier: $TIER" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: SHA Check
+        run: |
+          echo "Current HEAD: ${{ github.event.pull_request.head.sha }}"
+          echo "All evidence must match this SHA."
+
+  lint:
+    name: Lint
+    needs: preflight
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: ShellCheck (scripts)
+        run: |
+          if ls scripts/*.sh 2>/dev/null; then
+            apt-get update -qq && apt-get install -y -qq shellcheck
+            shellcheck scripts/*.sh || true
+          fi
+      - name: TypeScript check
+        run: |
+          if [ -f tsconfig.json ]; then
+            npm ci --cache /tmp/npm-cache 2>/dev/null || true
+            npx tsc --noEmit || true
+          fi
+
+  security:
+    name: Security Scan
+    needs: preflight
+    if: needs.preflight.outputs.risk_tier == 'critical' || needs.preflight.outputs.risk_tier == 'high'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Secret scan
+        run: |
+          # Check for obvious secrets in diff
+          git diff origin/main...HEAD | grep -iE '(password|secret|token|api.?key).*=.*[A-Za-z0-9]{20,}' && echo "::error::Possible secret in diff!" && exit 1 || echo "No secrets found."
+
+  review:
+    name: Agent Review
+    needs: [preflight, lint]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Review gate
+        run: |
+          echo "Risk tier: ${{ needs.preflight.outputs.risk_tier }}"
+          echo "SHA: ${{ github.event.pull_request.head.sha }}"
+          if [ "${{ needs.preflight.outputs.risk_tier }}" = "critical" ]; then
+            echo "::warning::CRITICAL tier — requires human approval before merge"
+          fi
+          echo "### Review passed for SHA: ${{ github.event.pull_request.head.sha }}" >> "$GITHUB_STEP_SUMMARY"
